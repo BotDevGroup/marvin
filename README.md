@@ -1,2 +1,25 @@
+![Python 3.5](https://img.shields.io/badge/python-3.5-blue.svg) ![License](https://img.shields.io/github/license/mashape/apistatus.svg)
 # python-telegram-bot
 Telegram Bot written in Python
+
+
+# Getting started
+
+First download the source with:
+
+    $ git clone https://github.com/BotDevGroup/python-telegram-bot
+
+You can install or upgrade python-telegram-bot with:
+
+    $ pip install python-telegram-bot --upgrade
+
+
+
+Other references:
+- [Telegram API documentation](https://core.telegram.org/bots/api)
+- [python-telegram-bot documentation](https://pythonhosted.org/python-telegram-bot/)
+
+
+# Contributing
+
+Contributions of all sizes are welcome. Please review our [contribution guidelines](https://github.com/BotDevGroup/python-telegram-bot/blob/master/CONTRIBUTING.md) to get started. You can also help by [reporting bugs](https://github.com/BotDevGroup/python-telegram-bot/issues/new).
