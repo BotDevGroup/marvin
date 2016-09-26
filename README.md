@@ -14,6 +14,16 @@ You can install or upgrade python-telegram-bot with:
     $ pip install python-telegram-bot --upgrade
 
 
+How to setup your Bot
+ - Go ahead and talk to [@BotFather](https://web.telegram.org/#/im?p=@BotFather) to generate your bot token.
+ - Now that you have your token already generated go to /app/config/ and rename app.default.ini to app.ini now add your token
+ Example:
+ 	TelegramBotToken = YourTokenGoesHere
+- Go to the directory of the bot and run ./bot.py the bot will be started, you'll know because the message "Bot Started". 
+- Now go to your bot and say '/hello' to your bot :)
+
+
+
 
 Other references:
 - [Telegram API documentation](https://core.telegram.org/bots/api)
