@@ -13,6 +13,18 @@ You can install or this bot with:
 
     $ python setup.py develop
     
+    
+To start the bot:
+
+    $ ./marvind start
+    
+To stop the bot:
+
+    $ ./marvind stop
+    
+To tail the logs:
+
+    $ ./marvind celery_log
 
 If you want a shell and a great debugger:
     
