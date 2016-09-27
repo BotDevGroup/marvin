@@ -4,7 +4,7 @@ from distutils.core import setup
 from setuptools import find_packages
 
 REQUIREMENTS = [
-    'python-telegram-bot'
+    'python-telegram-bot',
     'celery',
     'sqlalchemy',
     'blinker',
