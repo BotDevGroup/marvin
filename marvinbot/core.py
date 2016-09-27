@@ -1,11 +1,12 @@
 from celery import Task
 from datetime import timedelta
-from collections import defaultdict
+from collections import defaultdict, OrderedDict
 from marvinbot.errors import HandlerException
 import telegram
 import logging
 
 log = logging.getLogger(__name__)
+PERIODIC_TASKS = OrderedDict()
 
 
 # Make a singleton
@@ -103,8 +104,30 @@ class CommandHandler(Handler):
         return self.command
 
 
+def add_periodic_task(name, schedule, task, options=None, *args, **kwargs):
+    """Register a periodic task.
+
+    Schedule can be a python datetime.timedelta object or a celery crontab object."""
+    PERIODIC_TASKS[name] = {
+        'task': task,
+        'schedule': schedule,
+    }
+    if args:
+        PERIODIC_TASKS[name]['args'] = args
+    if kwargs:
+        PERIODIC_TASKS[name]['kwargs'] = kwargs
+    if options:
+        PERIODIC_TASKS[name]['options'] = options
+
+
 def get_periodic_tasks(config):
-    return {
+    """Returns a list of periodic tasks in a format Celerybeat understands.
+
+    This includes both built-in tasks and any tasks that might have been added by
+    plugins by calling `add_periodic_task`.
+    """
+    # Default built-in tasks
+    tasks = {
         'fetch_messages': {
             'task': 'marvinbot.tasks.fetch_messages',
             'schedule': timedelta(seconds=5),
@@ -113,3 +136,6 @@ def get_periodic_tasks(config):
             }
         },
     }
+    if PERIODIC_TASKS:
+        tasks.update(dict(PERIODIC_TASKS))
+    return tasks
