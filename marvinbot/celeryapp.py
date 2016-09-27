@@ -1,10 +1,24 @@
+from __future__ import absolute_import
 from celery import Celery
-from celery.signals import worker_init
+from celery.signals import worker_init, worker_shutdown
 from marvinbot.utils import get_config, load_sources
+from marvinbot.core import get_adapter, get_periodic_tasks
+from marvinbot.cache import configure_cache
 from kombu import Exchange, Queue
 
 
-def configure_celery(section='celery'):
+adapter_generator = None
+
+
+def initialize():
+    global adapter_generator
+    config = get_config()
+    adapter_generator = get_adapter(config)
+    configure_cache(config)
+    load_sources(config, adapter_generator())
+
+
+def configure():
     config = get_config()
 
     celery = Celery('marvinbot',
@@ -12,25 +26,35 @@ def configure_celery(section='celery'):
                     backend=config.get('backend'),
                     include=['marvinbot.tasks'])
 
-    load_sources(config)
-
     # Optional configuration, see the application user guide.
     celery.conf.update(
         CELERY_TASK_RESULT_EXPIRES=3600,
         CELERY_TIMEZONE=config.get('default_timezone'),
         CELERY_DEFAULT_QUEUE='marvinbot',
         CELERY_RESULT_BACKEND=config.get('backend'),
+        CELERY_ACCEPT_CONTENT=['json', 'pickle'],
+        CELERY_TASK_SERIALIZER='pickle',
+        CELERY_RESULT_SERIALIZER='json',
+
         CELERY_QUEUES=(
             Queue('marvinbot', Exchange('marvinbot'), routing_key='marvinbot'),
         ),
         # See: http://docs.celeryproject.org/en/latest/userguide/periodic-tasks.html
-        # CELERYBEAT_SCHEDULE=get_periodic_tasks()
+        CELERYBEAT_SCHEDULE=get_periodic_tasks(config)
     )
+
+    initialize()
 
     return celery
 
-celery = marvinbot_app = configure_celery()
+celery = marvinbot_app = configure()
 
 
-if __name__ == '__main__':
-    marvinbot_app.start()
+# @worker_init.connect
+# def setup(signal, sender):
+#     from marvinbot import tasks
+
+
+# @worker_shutdown.connect
+# def on_shutdown(signal, sender):
+#     adapter.stop()

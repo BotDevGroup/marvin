@@ -9,6 +9,8 @@ REQUIREMENTS = [
     'sqlalchemy',
     'blinker',
     'python-dateutil',
+    'dogpile.cache',
+    'pylibmc'
 ]
 
 setup(name='bottob',

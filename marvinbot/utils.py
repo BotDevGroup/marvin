@@ -43,11 +43,12 @@ def get_config(config_file=None):
     return config
 
 
-def load_module(modspec, config):
+def load_module(modspec, config, updater):
     mod = importlib.import_module(modspec)
     if hasattr(mod, 'configure'):
         # Call module-level configure method
-        mod.configure(config)
+        plugin = mod.configure(config)
+        plugin.set_updater(updater)
 
     try:
         # If successful, tasks will already be registered with Celery
@@ -62,14 +63,14 @@ DEFAULT_TIMEZONE = os.environ.get('TZ', CONFIG.get('default_timezone'))
 TZ = pytz.timezone(DEFAULT_TIMEZONE)
 
 
-def load_sources(config):
+def load_sources(config, adapter):
     modules_to_load = config.get("plugins")
 
     if modules_to_load:
         for module in modules_to_load:
             if module:
                 # Pass along module specific configuration, if available
-                load_module(module, config.get(module, {}))
+                load_module(module, config.get(module, {}), adapter)
 
 
 def localized_date(date=None, timezone=None):

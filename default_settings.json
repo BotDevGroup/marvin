@@ -2,5 +2,11 @@
     "default_timezone": "America/Santo_Domingo", 
     "broker": "amqp://localhost",
     "backend": "amqp://localhost",
-    "plugins": []
+    "plugins": [],
+    "telegram_token": "270465929:AAF-M2VWvZwvCr3SYZAACuzJc1DmJm4uW40",
+    "cache": {
+        "backend": "dogpile.cache.pylibmc",
+        "expiration_time": 3600,
+        "arguments.url": "localhost"
+    }
 }
