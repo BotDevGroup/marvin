@@ -9,9 +9,15 @@ First download the source with:
 
     $ git clone https://github.com/BotDevGroup/python-telegram-bot
 
-You can install or upgrade python-telegram-bot with:
+You can install or this bot with:
 
-    $ pip install python-telegram-bot --upgrade
+    $ python setup.py develop
+    
+
+If you want a shell and a great debugger:
+    
+    $ pip install ipython ipdb
+    $ ./marvind shell
 
 
 How to setup your Bot

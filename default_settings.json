@@ -1,0 +1,6 @@
+{
+    "default_timezone": "America/Santo_Domingo", 
+    "broker": "amqp://localhost",
+    "backend": "amqp://localhost",
+    "plugins": []
+}
