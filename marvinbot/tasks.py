@@ -1,4 +1,5 @@
 from marvinbot.celeryapp import marvinbot_app, adapter_generator as make_adapter
+from marvinbot.handlers import Filters
 from marvinbot.cache import cache
 from celery.utils.log import get_task_logger
 from telegram.error import NetworkError, Unauthorized
@@ -26,3 +27,16 @@ def fetch_messages(self):
 def start_command(update):
     log.info('Start command caught')
     adapter.bot.sendMessage(chat_id=update.message.chat_id, text="I'm a bot, please talk to me!")
+
+
+@adapter.register_message_handler(Filters.photo)
+@marvinbot_app.task()
+def gaze_at_pic(update):
+    update.message.reply_text('Nice pic, bro')
+
+
+@adapter.register_message_handler([Filters.text, lambda msg: msg.text in ['hola', 'hi', 'klk', 'hey']],
+                                  strict=True)
+@marvinbot_app.task()
+def salutation_initiative(update):
+    update.message.reply_text("'zup")
