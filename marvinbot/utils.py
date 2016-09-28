@@ -40,7 +40,7 @@ def get_config(config_file=None):
         with open(config_file, 'r') as f:
             config = json.load(f)
     elif os.path.exists(DEFAULT_CONFIG):
-        with open(config_file, 'r') as f:
+        with open(DEFAULT_CONFIG, 'r') as f:
             config = json.load(f)
     else:
         raise ValueError('ConfigFile [{}] not found'.format(config_file))
