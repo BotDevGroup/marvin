@@ -24,9 +24,9 @@ def fetch_messages(self):
 
 @adapter.register_command('start')
 @marvinbot_app.task()
-def start_command(update):
+def start_command(update, *args):
     log.info('Start command caught')
-    adapter.bot.sendMessage(chat_id=update.message.chat_id, text="I'm a bot, please talk to me!")
+    adapter.bot.sendMessage(chat_id=update.message.chat_id, text="I'm a bot, please talk to me!: {}".format(args))
 
 
 @adapter.register_message_handler(Filters.photo)
