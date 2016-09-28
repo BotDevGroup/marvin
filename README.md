@@ -9,7 +9,7 @@ First download the source with:
 
     $ git clone https://github.com/BotDevGroup/python-telegram-bot
 
-You can install or this bot with:
+You can install this bot with:
 
     $ python setup.py develop
     
@@ -35,9 +35,10 @@ If you want a shell and a great debugger:
 How to setup your Bot
 
 1. Go ahead and talk to [@BotFather](https://telegram.me/BotFather) to generate your bot token.
-2. Now that you have your token already generated go to /app/config/ and rename app.default.ini to app.ini now add your token example: TelegramBotToken = YourTokenGoesHere
-3. Go to the directory of the bot and run ./bot.py the bot will be started, you'll know because the message "Bot Started". 
-4. Now go to your bot and say '/hello' to your bot :)
+2. Now that you have your token already generated go to settings.json and now add your token to "telegram_token": "Your Token Goes Here"
+3. Make shure you have rabbitmq and memcached installed in your system. 
+4. Go to the directory of the bot in your terminal and type ./marvind start the bot will be started, you'll know because the message "OK". 
+5. Now go to your bot and say '/hello' to your bot :)
 
 
 
