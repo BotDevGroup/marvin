@@ -1,7 +1,7 @@
-from celery import Task
 from datetime import timedelta
 from collections import defaultdict, OrderedDict
 from marvinbot.errors import HandlerException
+from marvinbot.handlers import CommandHandler, MessageHandler
 import telegram
 import logging
 
@@ -52,56 +52,15 @@ class TelegramAdapter(object):
 
     def register_command(self, command_name, **options):
         def command_decorator(func):
-            handler = CommandHandler(command_name, func, self)
+            handler = CommandHandler(command_name, func, **options)
             self.add_handler(handler)
         return command_decorator
 
-
-class Handler(object):
-    def __init__(self, callback, allow_edits=True):
-        self.callback = callback
-        self.allow_edits = allow_edits
-
-    def get_message(self, update):
-        if (isinstance(update, telegram.Update) and (update.message or update.edited_message and self.allow_edited)):
-            message = update.message or update.edited_message
-            return message
-
-    def can_handle(self, update):
-        """Return True/False if this handler can process the given update."""
-        raise NotImplementedError
-
-    def process_update(self, update, call_async=True):
-        """Process the given update.
-
-        Callbacks are expected to get a hold of the adapter (it's a singleton)."""
-        raise NotImplementedError
-
-    def do_call(self, update, call_async=True, *args, **kwargs):
-        if call_async and isinstance(self.callback, Task):
-            self.callback.s(update, *args, **kwargs).apply_async()
-        else:
-            self.callback(update, *args, **kwargs)
-
-
-class CommandHandler(Handler):
-    def __init__(self, command, callback, *args, **kwargs):
-        self.command = command
-        super(CommandHandler, self).__init__(callback, *args, **kwargs)
-
-    def can_handle(self, update):
-        message = self.get_message(update)
-
-        return (message.text and message.text.startswith('/')
-                and message.text[1:].split(' ')[0].split('@')[0] == self.command)
-
-    def process_update(self, update, call_async=True):
-        message = self.get_message(update)
-        params = message.text.split(' ')[1:]
-        self.do_call(update, *params)
-
-    def __str__(self):
-        return self.command
+    def register_message_handler(self, filters, **options):
+        def message_decorator(func):
+            handler = MessageHandler(filters, func, **options)
+            self.add_handler(handler)
+        return message_decorator
 
 
 def add_periodic_task(name, schedule, task, options=None, *args, **kwargs):
@@ -132,7 +91,7 @@ def get_periodic_tasks(config):
             'task': 'marvinbot.tasks.fetch_messages',
             'schedule': timedelta(seconds=5),
             'options': {
-                'expires': 5  # If it takes longer than this to execute, expire and wait for the next
+                'expires': 3  # If it takes longer than this to execute, expire and wait for the next
             }
         },
     }
