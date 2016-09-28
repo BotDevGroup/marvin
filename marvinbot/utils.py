@@ -22,6 +22,9 @@ def get_from_module(modspec, fspec, default=None):
         return default
 
 
+DEFAULT_CONFIG = 'default_settings.json'
+
+
 def get_config(config_file=None):
     """
     Gets a configuration object for marvinbot.
@@ -31,10 +34,12 @@ def get_config(config_file=None):
     from the current working directory.
     """
     if not config_file:
-        config_file = os.environ.get('MARVINBOT_CONFIG') or get_from_module('marvinbot',
-                                                                            'settings.json', 'default_settings.json')
+        config_file = os.environ.get('MARVINBOT_CONFIG') or 'settings.json'
 
     if os.path.exists(config_file):
+        with open(config_file, 'r') as f:
+            config = json.load(f)
+    elif os.path.exists(DEFAULT_CONFIG):
         with open(config_file, 'r') as f:
             config = json.load(f)
     else:
