@@ -3,7 +3,7 @@
     "broker": "amqp://localhost",
     "backend": "amqp://localhost",
     "plugins": [],
-    "telegram_token": "270465929:AAF-M2VWvZwvCr3SYZAACuzJc1DmJm4uW40",
+    "telegram_token": "123456:ABC-DEF1234ghIkl-zyx57W2v1u123ew11",
     "cache": {
         "backend": "dogpile.cache.pylibmc",
         "expiration_time": 3600,
