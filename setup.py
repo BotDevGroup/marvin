@@ -4,12 +4,12 @@ from distutils.core import setup
 from setuptools import find_packages
 
 REQUIREMENTS = [
-    'python-telegram-bot',
-    'celery',
+    'python-telegram-bot==5.1.0',
+    'celery==3.1.23',
     'sqlalchemy',
     'blinker',
     'python-dateutil',
-    'dogpile.cache',
+    'dogpile.cache==0.6.2',
     'pylibmc'
 ]
 
