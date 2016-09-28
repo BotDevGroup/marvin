@@ -1,18 +1,29 @@
 ![Python 3.5](https://img.shields.io/badge/python-3.5-blue.svg) ![License](https://img.shields.io/github/license/mashape/apistatus.svg)
-# python-telegram-bot
+# Marvin
 Telegram Bot written in Python
 
+# Requirements
+
+- Python 3.5
+- RabbitMQ
+- Memcached
+- MySQL/MariaDB
 
 # Getting started
 
 First download the source with:
 
-    $ git clone https://github.com/BotDevGroup/python-telegram-bot
+    $ git clone git@github.com:BotDevGroup/marvin.git
 
 You can install this bot with:
 
     $ python setup.py develop
     
+Copy default_settings.json to settings.json and customize it. Remember to
+set your Telegram bot token on `telegram_token`, as well as the urls for
+memcached/rabbitmq. This is also a good time to add any plugins.
+
+    $ cp default_settings.json settings.json
     
 To start the bot:
 
