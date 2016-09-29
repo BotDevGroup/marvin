@@ -1,5 +1,6 @@
 from celery import Task
 from telegram.ext.messagehandler import Filters
+from marvinbot.models import User
 import telegram
 
 
@@ -15,6 +16,18 @@ class Handler(object):
         if (isinstance(update, telegram.Update) and (update.message or update.edited_message and self.allow_edited)):
             message = update.message or update.edited_message
             return message
+
+    def get_registered_user(self, message):
+        """Return a registered User instance for message.
+
+        Returns None if the user isn't registered."""
+        user = message.from_user
+        user_id = user.id
+
+        try:
+            return User.objects.get(id=user_id)
+        except User.DoesNotExist:
+            return None
 
     def can_handle(self, update):
         """Return True/False if this handler can process the given update."""
@@ -34,12 +47,25 @@ class Handler(object):
 
 
 class CommandHandler(Handler):
-    def __init__(self, command, callback, *args, **kwargs):
+    def __init__(self, command, callback, required_roles=None, *args, **kwargs):
         self.command = command
+        self.required_roles = None
+        if required_roles:
+            if not isinstance(required_roles, list):
+                self.required_roles = [required_roles]
+            else:
+                self.required_roles = required_roles
         super(CommandHandler, self).__init__(callback, *args, **kwargs)
 
     def can_handle(self, update):
         message = self.get_message(update)
+
+        if self.required_roles:
+            user = self.get_registered_user(message)
+            if not user:
+                return False
+            if user.role not in self.required_roles:
+                return False
 
         return (message.text and message.text.startswith('/')
                 and message.text[1:].split(' ')[0].split('@')[0] == self.command)
