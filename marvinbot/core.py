@@ -86,15 +86,20 @@ def get_periodic_tasks(config):
     plugins by calling `add_periodic_task`.
     """
     # Default built-in tasks
-    tasks = {
-        'fetch_messages': {
+    tasks = {}
+    updater_config = config.get('updater', {})
+
+    if updater_config.get('mode', 'polling') == 'polling':
+        tasks['fetch_messages'] = {
             'task': 'marvinbot.tasks.fetch_messages',
-            'schedule': timedelta(seconds=5),
+            # Fetch messages every X seconds
+            'schedule': timedelta(seconds=int(updater_config.get('polling_interval', 5))),
             'options': {
-                'expires': 3  # If it takes longer than this to execute, expire and wait for the next
+                # If fetch_messages takes this long to run, expire and wait for the next schedule
+                'expires': int(updater_config.get('polling_expiry', 3))
             }
-        },
-    }
+        }
+
     if PERIODIC_TASKS:
         tasks.update(dict(PERIODIC_TASKS))
     return tasks
