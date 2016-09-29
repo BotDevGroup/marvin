@@ -19,11 +19,11 @@ Install the bot with:
 
     $ python setup.py develop
     
-Copy `default_settings.json` and rename it to `settings.json` (Open `settings.json` to customize it).
+Copy `default_settings.<your platform>.json` and rename it to `settings.json` (Open `settings.json` to customize it).
 Remember to set your Telegram bot token on `telegram_token`, as well as the urls for memcached/rabbitmq.
 This is also a good time to add any plugins.
 
-    $ cp default_settings.json settings.json
+    $ cp default_settings.linux.json settings.json
     
 To start the bot:
 
