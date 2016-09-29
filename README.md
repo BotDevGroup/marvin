@@ -11,6 +11,8 @@ Telegram Bot written in Python
 
 # Getting started
 
+####OS installation guide at the end.
+
 Download the source with:
 
     $ git clone git@github.com:BotDevGroup/marvin.git
@@ -53,10 +55,44 @@ If you want a shell and a great debugger:
 
 
 
-
 Other references:
 - [Telegram API documentation](https://core.telegram.org/bots/api)
 - [python-telegram-bot documentation](https://pythonhosted.org/python-telegram-bot/)
+
+# OS installation guide
+####Ubuntu 
+(tested in Ubuntu 16.04)
+
+This article assumes that you have user with sudo privileges. (DON'T USE ROOT FOR DEVELOP)
+
+Step one - Install python 3.5, rabbitmq, memcached, pip, celery and others:
+
+	$ sudo apt-get install git python3.5 python3-all-dev python3-pylibmc python3-pip python3-celery python3-dogpile.cache python3-dateutil python3-sqlalchemy python3-blinker rabbitmq-server memcached 
+	$ sudo apt-get install -y libmemcached-dev zlib1g-dev libssl-dev python-dev build-essential
+
+Check for celery if is the requirement vertion:
+
+	$ pip install --upgrade "celery==3.1.23"
+
+Install `mongoengine` module:
+
+	$ pip install mongoengine
+
+Install `pylibmc`:
+
+	$ pip install pylibmc
+
+Step two - Install `virtualenv`:
+
+	$ sudo pip install virtualenv
+	$ virtualenv --python=`which python3` venv	# Where venv will be the virtualenv folder.
+	
+Activate the `virtualenv`. Remember to run this inside the project:
+
+	$ source venv/bin/activate
+
+You should see now `(venv) user@host:~$`.
+
 
 
 # Contributing
