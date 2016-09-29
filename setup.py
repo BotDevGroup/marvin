@@ -22,7 +22,7 @@ elif sys.platform.startswith(('win', 'cygwin')):  # Guindos
 elif sys.platform.startswith('darwin'):  # Mac
     REQUIREMENTS += ['pylibmc']
 
-setup(name='marvin',
+setup(name='marvinbot',
       version='0.1',
       description='Super Duper Telegram Bot - MK. III',
       author='BotDevGroup',
