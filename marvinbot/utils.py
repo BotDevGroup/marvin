@@ -75,7 +75,7 @@ def configure_mongoengine(config):
     if password:
         params['password'] = password
 
-    mongoengine_connect(db_name, tz_aware=True, read_preference=ReadPreference.PRIMARY_PREFERRED, **params)
+    mongoengine_connect(db_name, tz_aware=True, read_preference=ReadPreference.PRIMARY_PREFERRED, connect=False, **params)
 
 
 def load_module(modspec, config, updater):
