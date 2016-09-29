@@ -88,5 +88,8 @@ ENV/
 # Rope project settings
 .ropeproject
 
+# Visual Studio Code settings
+.vscode
+
 # Configuration files
-app/config/app.ini
+settings.json
