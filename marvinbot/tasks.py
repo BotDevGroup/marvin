@@ -44,6 +44,12 @@ def start_command(update, *args):
     adapter.bot.sendMessage(chat_id=update.message.chat_id, text="I'm a bot, please talk to me!: {}".format(args))
 
 
+@adapter.register_command('bowdown', required_roles='admin')
+@marvinbot_app.task()
+def bowdown(update, *args):
+    update.message.reply_text('Yes, master **bows**')
+
+
 @adapter.register_message_handler(Filters.photo)
 @marvinbot_app.task()
 def gaze_at_pic(update):
