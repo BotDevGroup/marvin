@@ -9,6 +9,11 @@
         "polling_interval": 5,
         "polling_expiry": 3
     },
+    "mongodb.host": "localhost",
+    "mongodb.port": "27017",
+    "mongodb.db_name": "marvinbot",
+    "mongodb.username": "marvinbot",
+    "mongodb.password": "",
     "cache": {
         "backend": "dogpile.cache.pylibmc",
         "expiration_time": 3600,

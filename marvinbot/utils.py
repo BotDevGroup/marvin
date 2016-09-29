@@ -1,3 +1,5 @@
+from mongoengine import connect as mongoengine_connect
+from pymongo import ReadPreference
 from datetime import datetime
 from dateutil.tz import tzlocal
 import pytz
@@ -53,6 +55,27 @@ def get_config(config_file=None):
         raise ValueError('ConfigFile [{}] not found'.format(config_file))
 
     return config
+
+
+def configure_mongoengine(config):
+    if isinstance(config, dict):
+        host = config.get("mongodb.host", "localhost")
+        port = config.get("mongodb.port", 27017)
+        username = config.get("mongodb.username") or None
+        password = config.get("mongodb.password") or None
+        db_name = config.get("mongodb.db_name", "marvinbot")
+
+    params = {
+        'host': host,
+        'port': int(port),
+    }
+
+    if username:
+        params['username'] = username
+    if password:
+        params['password'] = password
+
+    mongoengine_connect(db_name, tz_aware=True, read_preference=ReadPreference.PRIMARY_PREFERRED, **params)
 
 
 def load_module(modspec, config, updater):

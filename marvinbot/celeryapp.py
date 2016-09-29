@@ -1,7 +1,7 @@
 from __future__ import absolute_import
 from celery import Celery
 from celery.signals import worker_init, worker_shutdown
-from marvinbot.utils import get_config, load_sources
+from marvinbot.utils import get_config, load_sources, configure_mongoengine
 from marvinbot.core import get_adapter, get_periodic_tasks
 from marvinbot.cache import configure_cache
 from kombu import Exchange, Queue
@@ -15,6 +15,7 @@ def initialize():
     config = get_config()
     adapter_generator = get_adapter(config)
     configure_cache(config)
+    configure_mongoengine(config)
     load_sources(config, adapter_generator())
 
 
@@ -50,9 +51,9 @@ def configure():
 celery = marvinbot_app = configure()
 
 
-# @worker_init.connect
-# def setup(signal, sender):
-#     from marvinbot import tasks
+@worker_init.connect
+def setup_modules(signal, sender):
+    initialize()
 
 
 # @worker_shutdown.connect

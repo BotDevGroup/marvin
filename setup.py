@@ -8,10 +8,10 @@ import sys
 REQUIREMENTS = [
     'python-telegram-bot==5.1.0',
     'celery==3.1.23',
-    'sqlalchemy',
     'blinker',
     'python-dateutil',
     'dogpile.cache==0.6.2',
+    'mongoengine==0.10.6',
 ]
 
 
