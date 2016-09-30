@@ -60,17 +60,22 @@ Other references:
 - [python-telegram-bot documentation](https://pythonhosted.org/python-telegram-bot/)
 
 # OS installation guide
-####Ubuntu 
-(tested in Ubuntu 16.04)
 
+####Linux 
 This article assumes that you have user with sudo privileges. (DON'T USE ROOT FOR DEVELOP)
 
 Step one - Install python 3.5, rabbitmq, memcached, pip, celery and others:
 
+#####Ubuntu 
+(tested in Ubuntu 16.04)
+
 	$ sudo apt-get install git python3.5 python3-all-dev python3-pylibmc python3-pip python3-celery python3-dogpile.cache python3-dateutil python3-sqlalchemy python3-blinker rabbitmq-server memcached 
 	$ sudo apt-get install -y libmemcached-dev zlib1g-dev libssl-dev python-dev build-essential
 
-Check for celery if is the requirement vertion:
+#####Arch Linux
+    $ sudo pacman -S memcached rabbitmq mongodb libmemcached
+
+Check for celery if is the requirement version:
 
 	$ pip install --upgrade "celery==3.1.23"
 
