@@ -1,0 +1,79 @@
+#!/bin/sh
+
+CELERY_LOGFILE=var/log/marvinbot.celery.log
+CELERY_PIDFILE=var/marvinbot.celery.pid
+
+CELERY_CMD=celery
+
+mkdir -p var/log
+
+start_celery() {
+    echo "Starting celeryd"
+    $CELERY_CMD multi start marvinbot --app=marvinbot.celeryapp:marvinbot_app -l info --logfile=$CELERY_LOGFILE --pidfile=$CELERY_PIDFILE -B $@
+}
+
+
+stop_celery() {
+    $CELERY_CMD multi stop marvinbot --pidfile=$CELERY_PIDFILE --app=marvinbot.celeryapp:marvinbot_app
+}
+
+kill_celery() {
+    $CELERY_CMD multi kill marvinbot --pidfile=$CELERY_PIDFILE --app=marvinbot.celeryapp:marvinbot_app
+}
+
+
+status() {
+    if [ -f $CELERY_PIDFILE ]; then
+        echo "Celery is running: $(cat $CELERY_PIDFILE)"
+
+    else
+        echo "Celery is not running..."
+    fi
+    exit 0
+}
+
+celery_log() {
+    if [ -f $CELERY_LOGFILE ]; then
+       tail -f $CELERY_LOGFILE
+    fi
+}
+
+shell() {
+    ipython -i marvinbot/shell.py
+}
+
+case $1 in
+    start)
+        start_celery      
+        ;;    
+    start_celery)
+        start_celery
+        ;;
+    stop)
+        stop_celery        
+        ;;    
+    stop_celery)
+        stop_celery
+        ;;
+    kill_celery)
+        kill_celery
+        ;;
+    restart)
+        stop_celery        
+        sleep 5
+        start_celery        
+        ;;
+    status)
+        status
+        ;;
+    celery_log)
+        celery_log
+        ;;
+    shell)
+        shell
+        ;;
+    *)
+        echo "marvinbotd {start|stop|restart}"
+        exit 1
+        ;;
+esac
