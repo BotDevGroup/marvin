@@ -73,7 +73,7 @@ Step one - Install python 3.5, rabbitmq, memcached, pip, celery and others:
 	$ sudo apt-get install -y libmemcached-dev zlib1g-dev libssl-dev python-dev build-essential
 
 #####Arch Linux
-    $ sudo pacman -S memcached rabbitmq mongodb libmemcached
+    $ sudo pacman -S memcached rabbitmq mongodb libmemcached boost
 
 Check for celery if is the requirement version:
 
