@@ -36,8 +36,8 @@ class TelegramAdapter(object):
             updates = self.bot.getUpdates(timeout=5)
             if updates:
                 cache.set('last_update_id', updates[-1].update_id + 1)
-        except Exception:
-            log.error("Error initializing last_update_id")
+        except Exception as e:
+            log.warn("Not initializing last_update_id: %s", str(e))
 
     def fetch_updates(self, last_update_id):
         for update in self.bot.getUpdates(offset=last_update_id, timeout=int(self.config.get('fetch_timeout', 5))):
