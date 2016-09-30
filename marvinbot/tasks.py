@@ -24,9 +24,12 @@ def fetch_messages(self):
 
     if acquire_lock():
         try:
+            last_update = None
             for update in adapter.fetch_updates(cache.get('last_update_id', ignore_expiration=True)):
+                last_update = update
                 adapter.process_update(update)
-                cache.set('last_update_id', update.update_id + 1)
+            if last_update:
+                cache.set('last_update_id', last_update.update_id + 1)
         except NetworkError:
             log.info("No more updates to fetch")
         except Unauthorized:

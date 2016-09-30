@@ -8,9 +8,9 @@ from kombu import Exchange, Queue
 
 
 def initialize(config):
-    configure_adapter(config)
     configure_cache(config)
     configure_mongoengine(config)
+    configure_adapter(config)
 
 
 def configure():

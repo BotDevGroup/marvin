@@ -14,8 +14,8 @@ from marvinbot.cache import configure_cache
 
 os.environ['PYTHONINSPECT'] = 'True'
 config = get_config()
-configure_adapter(config)
 configure_mongoengine(config)
 configure_cache(config)
+configure_adapter(config)
 load_sources(config)
 adapter = get_adapter()
