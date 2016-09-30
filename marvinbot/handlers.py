@@ -13,7 +13,7 @@ class Handler(object):
         self.call_async = call_async
 
     def get_message(self, update):
-        if (isinstance(update, telegram.Update) and (update.message or update.edited_message and self.allow_edited)):
+        if (isinstance(update, telegram.Update) and (update.message or update.edited_message and self.allow_edits)):
             message = update.message or update.edited_message
             return message
 
