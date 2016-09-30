@@ -7,7 +7,7 @@ Telegram Bot written in Python
 - [Python 3.5](https://www.python.org/downloads/release/python-352/)
 - [RabbitMQ](https://www.rabbitmq.com/download.html)
 - Memcached ([Windows](https://commaster.net/content/installing-memcached-windows)/[Ubuntu](https://memcached.org/downloads))
-- [MySQL](http://dev.mysql.com/downloads/)/[MariaDB](https://downloads.mariadb.org/)
+- [MongoDB](https://www.mongodb.com/download-center#community)
 
 # Getting started
 
@@ -61,10 +61,10 @@ Other references:
 
 # OS installation guide
 
-####Linux 
+###Linux 
 This article assumes that you have user with sudo privileges. (DON'T USE ROOT FOR DEVELOP)
 
-Step one - Install python 3.5, rabbitmq, memcached, pip, celery and others:
+######Step one - Install python 3.5, rabbitmq, memcached, pip, celery and others.
 
 #####Ubuntu 
 (tested in Ubuntu 16.04)
@@ -75,19 +75,15 @@ Step one - Install python 3.5, rabbitmq, memcached, pip, celery and others:
 #####Arch Linux
     $ sudo pacman -S memcached rabbitmq mongodb libmemcached boost
 
+Step two - Install `celery`, `mongoengine` y `pylibmc`:
+
 Check for celery if is the requirement version:
 
 	$ pip install --upgrade "celery==3.1.23"
-
-Install `mongoengine` module:
-
 	$ pip install mongoengine
-
-Install `pylibmc`:
-
 	$ pip install pylibmc
 
-Step two - Install `virtualenv`:
+Step three - Install `virtualenv`:
 
 	$ sudo pip install virtualenv
 	$ virtualenv --python=`which python3` venv	# Where venv will be the virtualenv folder.
