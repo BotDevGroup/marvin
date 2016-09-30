@@ -14,5 +14,12 @@ class User(mongoengine.Document):
         # TODO: Actually check groups
         return self.role == 'admin'
 
+    @classmethod
+    def by_id(cls, user_id):
+        try:
+            return cls.objects.get(id=user_id)
+        except cls.DoesNotExist:
+            return None
+
     def __str__(self):
         return "{id}: {username}".format(id=self.id, username=self.username or '<NoUserName>')

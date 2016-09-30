@@ -1,7 +1,6 @@
 from datetime import timedelta
 from collections import defaultdict, OrderedDict
 from marvinbot.errors import HandlerException
-from marvinbot.handlers import CommandHandler, MessageHandler
 import telegram
 import logging
 
@@ -9,21 +8,19 @@ log = logging.getLogger(__name__)
 PERIODIC_TASKS = OrderedDict()
 
 
-# Make a singleton
-def get_adapter(config):
-    adapter = None
+_ADAPTER = None
 
-    def make_adapter():
-        adapter = TelegramAdapter(config.get('telegram_token'))
-        return adapter
 
-    def adapter_generator():
-        if not adapter:
-            return make_adapter()
-        else:
-            return adapter
+def configure_adapter(config):
+    global _ADAPTER
+    _ADAPTER = TelegramAdapter(config.get('telegram_token'))
+    return _ADAPTER
 
-    return adapter_generator
+
+def get_adapter():
+    global _ADAPTER
+    if _ADAPTER:
+        return _ADAPTER
 
 
 class TelegramAdapter(object):
@@ -36,6 +33,7 @@ class TelegramAdapter(object):
             yield update
 
     def add_handler(self, handler, priority=0):
+        log.info("Adding handler: {}, priority: {}".format(handler, priority))
         self.handlers[priority].append(handler)
 
     def process_update(self, update):
@@ -49,18 +47,6 @@ class TelegramAdapter(object):
                     except HandlerException as e:
                         log.error(e)
                         raise e
-
-    def register_command(self, command_name, **options):
-        def command_decorator(func):
-            handler = CommandHandler(command_name, func, **options)
-            self.add_handler(handler)
-        return command_decorator
-
-    def register_message_handler(self, filters, **options):
-        def message_decorator(func):
-            handler = MessageHandler(filters, func, **options)
-            self.add_handler(handler)
-        return message_decorator
 
 
 def add_periodic_task(name, schedule, task, options=None, *args, **kwargs):
