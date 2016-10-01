@@ -1,8 +1,5 @@
-from datetime import timedelta
 from collections import defaultdict, OrderedDict
-from marvinbot.cache import cache
 from marvinbot.errors import HandlerException
-from telegram.error import NetworkError, Unauthorized
 import telegram
 import logging
 
@@ -32,7 +29,7 @@ class TelegramAdapter(object):
         self.bot = telegram.Bot(token)
         self.handlers = defaultdict(list)
 
-    def fetch_updates(self, last_update_id):
+    def fetch_updates(self, last_update_id=None):
         for update in self.bot.getUpdates(offset=last_update_id, timeout=int(self.config.get('fetch_timeout', 5))):
             yield update
 

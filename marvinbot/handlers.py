@@ -2,20 +2,29 @@ from celery import Task
 from telegram.ext.messagehandler import Filters
 from marvinbot.models import User
 from marvinbot.utils import get_message
+from datetime import datetime
+import logging
+
+
+log = logging.getLogger(__name__)
 
 
 class Handler(object):
-    def __init__(self, callback, allow_edits=True, call_async=False):
+    def __init__(self, callback, allow_edits=True, call_async=False, discard_threshold=300):
         """Initialize this handler.
 
-        `allow_edits`: if enabled, handler will also accept edits.
-        `call_async`: if callback is a celery task, call asynchronously.
-        Else call in the current worker."""
+        Parameters:
+        - `allow_edits`: if enabled, handler will also accept edits.
+        - `call_async`: if callback is a celery task, call asynchronously.
+          Else call in the current worker.
+        - `discard_threshold`: Messages older than X seconds will get discarded.
+        '"""
         self.callback = callback
         if not self.callback:
             raise ValueError('Callback is required')
         self.allow_edits = allow_edits
         self.call_async = call_async
+        self.discard_threshold = discard_threshold
 
     def get_registered_user(self, message):
         """Return a registered User instance for message.
@@ -28,13 +37,26 @@ class Handler(object):
 
     def can_handle(self, update):
         """Return True/False if this handler can process the given update."""
+        message = get_message(update, self.allow_edits)
+        age = datetime.now() - message.date
+        if age.total_seconds() > self.discard_threshold:
+            return False
+
+        return self.validate(message)
+
+    def validate(self, message):
+        """Return True/False if this handler can process the given update.
+
+        You need to override this method."""
         raise NotImplementedError
 
     def process_update(self, update):
         """Process the given update.
 
-        Callbacks are expected to get a hold of the adapter (it's a singleton)."""
-        raise NotImplementedError
+        Callbacks are expected to get a hold of the adapter (it's a singleton).
+        Override if you need to do anything other than calling the callback and then
+        call the parent class method."""
+        self.do_call(update)
 
     def do_call(self, update, *args, **kwargs):
         if self.call_async and isinstance(self.callback, Task):
@@ -54,9 +76,7 @@ class CommandHandler(Handler):
                 self.required_roles = required_roles
         super(CommandHandler, self).__init__(callback, *args, **kwargs)
 
-    def can_handle(self, update):
-        message = get_message(update, self.allow_edits)
-
+    def validate(self, message):
         if self.required_roles:
             user = self.get_registered_user(message)
             if not user:
@@ -70,7 +90,8 @@ class CommandHandler(Handler):
     def process_update(self, update):
         message = get_message(update, self.allow_edits)
         params = message.text.split(' ')[1:]
-        self.do_call(update, *params)
+
+        super(CommandHandler, self).process_update(update, *params)
 
     def __str__(self):
         return self.command
@@ -92,16 +113,11 @@ class MessageHandler(Handler):
         self.strict = True
         super(MessageHandler, self).__init__(callback, *args, **kwargs)
 
-    def can_handle(self, update):
-        message = get_message(update, self.allow_edits)
-
+    def validate(self, message):
         if self.strict:
             return all(f(message) for f in self.filters)
         else:
             return any(f(message) for f in self.filters)
-
-    def process_update(self, update):
-        self.do_call(update)
 
     def __str__(self):
         return str(self.filters)
