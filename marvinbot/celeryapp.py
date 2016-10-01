@@ -62,7 +62,7 @@ def configure_marvinbot(sender=None, conf=None, **kwargs):
     adapter = get_adapter()
     config = adapter.config
     updater_config = config.get('updater', {})
-    if updater_config.get('mode', 'polling_thread') != 'polling_thread':
+    if updater_config.get('mode', 'polling') != 'polling':
         return
 
     from marvinbot.polling import TelegramPollingThread

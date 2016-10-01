@@ -5,7 +5,7 @@
     "plugins": [],
     "telegram_token": "123456:ABC-DEF1234ghIkl-zyx57W2v1u123ew11",
     "updater": {
-        "mode": "polling_thread",
+        "mode": "polling",
         "polling_interval": 0.3,
         "polling_expiry": 5
     },
