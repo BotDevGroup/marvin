@@ -1,5 +1,6 @@
 from marvinbot.utils import localized_date
 from telegram.error import NetworkError, Unauthorized
+from concurrent.futures import ThreadPoolExecutor
 from functools import partial
 import threading
 import polling
@@ -12,7 +13,7 @@ log = logging.getLogger(__name__)
 class PollingThread(threading.Thread):
     def __init__(self, func, process_func, checker=None, poll_interval=60, poll_timeout=30,
                  ignored_exceptions=None, send_last_update_time=False, send_last_result=False,
-                 hard_timeout=False, thread_name=None, *args, **kwargs):
+                 hard_timeout=False, thread_name=None, workers=2, *args, **kwargs):
         """Setup a Polling thread.
 
         Parameters:
@@ -28,6 +29,7 @@ class PollingThread(threading.Thread):
         `func` should expect a parameter named `last_result`, which will be None on the first run.
         - `hard_timeout`: Whether to exit on the first timeout.
         - `thread_name`: self explanatory
+        - `workers`: max amount of threads to execute `process_func`
         - `*args`: positional parameters for `func`.
         - `**kwargs`: keyword parameters for `func`.
         """
@@ -52,6 +54,12 @@ class PollingThread(threading.Thread):
         if thread_name:
             self.name = thread_name
         self.daemon = True
+        self.executor = ThreadPoolExecutor(max_workers=workers)
+
+    def do_poll(self):
+        return polling.poll(partial(self.func, *self.func_args, **self.func_kwargs),
+                            check_success=self.checker, ignore_exceptions=self.ignored_exceptions,
+                            timeout=self.poll_timeout, step=self.poll_interval)
 
     def run(self):
         self.running = True
@@ -59,14 +67,12 @@ class PollingThread(threading.Thread):
 
         while self.running:
             try:
-                result = polling.poll(partial(self.func, *self.func_args, **self.func_kwargs),
-                                      check_success=self.checker, ignore_exceptions=self.ignored_exceptions,
-                                      timeout=self.poll_timeout, step=self.poll_interval)
+                result = self.do_poll()
                 if self.send_last_update_time:
                     self.func_kwargs['last_update_time'] = localized_date()
-                process_result = self.process_func(result)
+                process_result = self.executor.submit(self.process_func, result)
                 if self.send_last_result:
-                    self.func_kwargs['last_result'] = process_result
+                    self.update_last_result(process_result)
             except polling.TimeoutException:
                 # If true, abort immediately
                 if self.hard_timeout:
@@ -76,24 +82,35 @@ class PollingThread(threading.Thread):
             except Exception as e:
                 log.error("Error ocurred: %s", str(e))
 
+    def update_last_result(self, future):
+        self.func_kwargs['last_result'] = future.result()
+
     def stop(self):
         self.running = False
+        self.executor.shutdown()
+
+
+UPDATER_DEFAULTS = {
+            'polling_interval': 0.5,
+            'polling_expiry': 10,
+            'polling_workers': 2,
+        }
 
 
 class TelegramPollingThread(PollingThread):
     def __init__(self, adapter):
         self.adapter = adapter
-        updater_config = self.adapter.config.get('updater', {
-            'polling_interval': 0.5,
-            'polling_expiry': 10,
-        })
+        updater_config = UPDATER_DEFAULTS
+        updater_config.update(self.adapter.config.get('updater', {}))
+
         super(TelegramPollingThread, self).__init__(self.fetch_updates, self.on_update,
                                                     checker=lambda x: bool(x),
                                                     ignored_exceptions=[NetworkError, Unauthorized],
                                                     send_last_result=True, send_last_update_time=True,
                                                     poll_interval=updater_config.get('polling_interval'),
                                                     poll_timeout=updater_config.get('polling_expiry'),
-                                                    thread_name='telegram-polling-thread')
+                                                    thread_name='telegram-polling-thread',
+                                                    workers=updater_config.get('polling_workers', 2))
 
     def fetch_updates(self, last_result=None, last_update_time=None):
         updates = list(self.adapter.fetch_updates(last_result))
@@ -102,7 +119,7 @@ class TelegramPollingThread(PollingThread):
     def on_update(self, updates):
         last_update = None
         for update in updates:
-            self.adapter.process_update(update)
+            self.executor.submit(self.adapter.process_update, update)
             last_update = update
         if last_update:
             return last_update.update_id + 1

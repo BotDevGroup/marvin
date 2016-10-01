@@ -15,7 +15,7 @@ from marvinbot.celeryapp import marvinbot_app
 from marvinbot.signals import bot_started, bot_shutdown
 import logging
 
-LOG_FORMAT = '%(asctime)s %(levelname)s [%(name)s] %(message)s'
+LOG_FORMAT = '%(asctime)s %(levelname)s [%(processName)s/%(threadName)s|%(name)s] %(message)s'
 logging.basicConfig(level=logging.INFO, format=LOG_FORMAT)
 log = logging.getLogger('standalone-bot')
 
