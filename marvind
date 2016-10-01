@@ -19,6 +19,9 @@ stop_celery() {
 
 kill_celery() {
     $CELERY_CMD multi kill marvinbot_main --pidfile=$CELERY_PIDFILE --app=marvinbot.celeryapp:marvinbot_app
+    sleep 2
+    # Kill them with extreme prejudice
+    ps auxww | grep 'celery worker' | awk '{print $2}' | xargs kill -9
 }
 
 
