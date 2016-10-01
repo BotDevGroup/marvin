@@ -4,6 +4,7 @@ from celery.signals import worker_init, worker_shutdown, celeryd_init
 from marvinbot.utils import get_config, load_sources, configure_mongoengine
 from marvinbot.core import configure_adapter, get_periodic_tasks, get_adapter
 from marvinbot.cache import configure_cache
+from marvinbot.signals import bot_started, bot_shutdown
 from kombu import Exchange, Queue
 
 
@@ -68,10 +69,12 @@ def configure_marvinbot(sender=None, conf=None, **kwargs):
 
     adapter.updater_thread = TelegramPollingThread(adapter)
     adapter.updater_thread.start()
+    bot_started.send(adapter)
 
 
 @worker_shutdown.connect
 def on_shutdown(signal, sender):
     adapter = get_adapter()
+    bot_shutdown.send(adapter)
     if hasattr(adapter, 'updater_thread'):
         adapter.updater_thread.stop()
