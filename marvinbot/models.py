@@ -8,7 +8,7 @@ class User(mongoengine.Document):
     username = mongoengine.StringField()
 
     # TODO: Implement proper groups
-    role = mongoengine.StringField(choices=['mortal', 'elevated', 'admin'], default='mortal')
+    role = mongoengine.StringField(choices=['mortal', 'elevated', 'admin', 'owner'], default='mortal')
 
     def is_admin(self):
         # TODO: Actually check groups
