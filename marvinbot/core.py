@@ -1,5 +1,6 @@
 from collections import defaultdict, OrderedDict
 from marvinbot.errors import HandlerException
+from marvinbot.models import User
 import telegram
 import logging
 
@@ -46,8 +47,14 @@ class TelegramAdapter(object):
                         handler.process_update(update)
                         return
                     except HandlerException as e:
+                        self.notify_owners("⚠ Handler Error: {}".format(str(e)))
                         log.error(e)
                         raise e
+
+    def notify_owners(self, message, parse_mode='Markdown'):
+        owners = User.objects.filter(role='owner')
+        for owner in owners:
+            self.bot.sendMessage(owner.id, message, parse_mode=parse_mode)
 
 
 def add_periodic_task(name, schedule, task, options=None, *args, **kwargs):
