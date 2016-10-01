@@ -5,9 +5,16 @@ Telegram Bot written in Python
 # Requirements
 
 - [Python 3.5](https://www.python.org/downloads/release/python-352/)
-- [RabbitMQ](https://www.rabbitmq.com/download.html)
-- Memcached ([Windows](https://commaster.net/content/installing-memcached-windows)/[Ubuntu](https://memcached.org/downloads)/Mac just: $ brew install memcached)
 - [MongoDB](https://www.mongodb.com/download-center#community)
+
+## Optional requirements:
+- [RabbitMQ](https://www.rabbitmq.com/download.html)
+- Memcached([Windows](https://commaster.net/content/installing-memcached-windows)/[Ubuntu](https://memcached.org/downloads)/Mac just: $ brew install memcached) 
+
+You'll need RabbitMQ if you want to run the bot with Celery support
+
+Memcached is need if you need real caching, remember to install a python
+driver (pylibmc or python-memcached) and adjust your settings accordingly. 
 
 # Getting started
 
@@ -19,7 +26,7 @@ Download the source with:
 
 Install the bot with:
 
-    $ python setup.py develop
+    (venv)$ python setup.py develop
     
 Copy `default_settings.<your platform>.json` and rename it to `settings.json` (Open `settings.json` to customize it).
 Remember to set your Telegram bot token on `telegram_token`, as well as the urls for memcached/rabbitmq.
@@ -27,17 +34,38 @@ This is also a good time to add any plugins.
 
     $ cp default_settings.linux.json settings.json
     
-To start the bot:
+    
+# Running the bot:
 
-    $ ./marvind start
+## Using Celery 
+
+To start the bot with celery (allows for asynchronous tasks, and scheduled tasks):
+
+    (venv)$ ./marvind start
     
 To stop the bot:
 
-    $ ./marvind stop
+    (venv)$ ./marvind stop
     
 To tail the logs:
 
-    $ ./marvind celery_log
+    (venv)$ ./marvind celery_log
+    
+## Running in standalone mode
+
+This mode is for dev purposes and for people running on Windows who can't or
+aren't willing to run Celery.
+
+To start the bot:
+
+    (venv)$ python run_standalone.py
+    
+This will bring the bot up in the current shell, to exit just hit `Ctrl+C` and
+confirm.
+
+Running in this mode only requires MongoDB to be running.
+    
+## Shell
 
 If you want a shell and a great debugger:
     
@@ -62,7 +90,7 @@ Other references:
 # OS installation guide
 
 ###Linux 
-This article assumes that you have user with sudo privileges. (DON'T USE ROOT FOR DEVELOP)
+This article assumes that you have user with sudo privileges. (DON'T USE ROOT FOR DEVELOPMENT)
 
 ######Step one - Install python 3.5, rabbitmq, memcached, pip, celery and others.
 
@@ -75,13 +103,12 @@ This article assumes that you have user with sudo privileges. (DON'T USE ROOT FO
 #####Arch Linux
     $ sudo pacman -S memcached rabbitmq mongodb libmemcached boost
 
-Step two - Install `celery`, `mongoengine` y `pylibmc`:
+Step two - Install `celery` and `mongoengine`:
 
 Check for celery if is the requirement version:
 
 	$ pip install --upgrade "celery==3.1.23"
 	$ pip install mongoengine
-	$ pip install pylibmc
 
 Step three - Install `virtualenv`:
 
@@ -92,10 +119,14 @@ Activate the `virtualenv`. Remember to run this inside the project:
 
 	$ source venv/bin/activate
 
-You should see now `(venv) user@host:~$`.
+You should now see `(venv) user@host:~$`.
 
+
+# Plugins
+
+See the [sample plugin](https://github.com/BotDevGroup/marvinbot_sample_plugin)
 
 
 # Contributing
 
-Contributions of all sizes are welcome. Please review our [contribution guidelines](https://github.com/BotDevGroup/python-telegram-bot/blob/master/CONTRIBUTING.md) to get started. You can also help by [reporting bugs](https://github.com/BotDevGroup/python-telegram-bot/issues/new).
+Contributions of all sizes are welcome. Please review our [contribution guidelines](https://github.com/BotDevGroup/marvin/blob/master/CONTRIBUTING.md) to get started. You can also help by [reporting bugs](https://github.com/BotDevGroup/marvin/issues/new).

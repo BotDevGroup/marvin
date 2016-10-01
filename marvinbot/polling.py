@@ -53,6 +53,8 @@ class PollingThread(threading.Thread):
         super(PollingThread, self).__init__()
         if thread_name:
             self.name = thread_name
+
+        # Make daemonic by default, so program exits if this is the last thread
         self.daemon = True
         self.executor = ThreadPoolExecutor(max_workers=workers)
 
@@ -63,16 +65,17 @@ class PollingThread(threading.Thread):
 
     def run(self):
         self.running = True
-        log.info("Start polling thread")
+        log.info("Starting polling thread")
 
         while self.running:
             try:
                 result = self.do_poll()
-                if self.send_last_update_time:
-                    self.func_kwargs['last_update_time'] = localized_date()
                 process_result = self.executor.submit(self.process_func, result)
                 if self.send_last_result:
+                    # This makes the process synchronous
                     self.update_last_result(process_result)
+                if self.send_last_update_time:
+                    self.func_kwargs['last_update_time'] = localized_date()
             except polling.TimeoutException:
                 # If true, abort immediately
                 if self.hard_timeout:
@@ -80,12 +83,14 @@ class PollingThread(threading.Thread):
                 log.debug("Timeout triggered")
                 continue
             except Exception as e:
+                # Log the error, but keep polling
                 log.error("Error ocurred: %s", str(e))
 
     def update_last_result(self, future):
         self.func_kwargs['last_result'] = future.result()
 
     def stop(self):
+        """Shut down everything in an orderly fashion"""
         self.running = False
         self.executor.shutdown()
 
@@ -113,13 +118,18 @@ class TelegramPollingThread(PollingThread):
                                                     workers=updater_config.get('polling_workers', 2))
 
     def fetch_updates(self, last_result=None, last_update_time=None):
+        # Fetch a list of Telegram updates for the bot, passing in the last_update_id
+        # as stored in last_result
         updates = list(self.adapter.fetch_updates(last_result))
         return updates
 
     def on_update(self, updates):
         last_update = None
         for update in updates:
+            # Execute the actual processing asynchronously
             self.executor.submit(self.adapter.process_update, update)
             last_update = update
         if last_update:
+            # This is needed so we can avoid pulling the same update twice
+            # Telegram's API returns the latest update after this ID
             return last_update.update_id + 1
