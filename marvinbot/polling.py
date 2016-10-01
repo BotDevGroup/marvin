@@ -13,7 +13,7 @@ log = logging.getLogger(__name__)
 class PollingThread(threading.Thread):
     def __init__(self, func, process_func, checker=None, poll_interval=60, poll_timeout=30,
                  ignored_exceptions=None, send_last_update_time=False, send_last_result=False,
-                 hard_timeout=False, thread_name=None, workers=2, *args, **kwargs):
+                 hard_timeout=False, thread_name=None, workers=None, *args, **kwargs):
         """Setup a Polling thread.
 
         Parameters:
@@ -56,12 +56,26 @@ class PollingThread(threading.Thread):
 
         # Make daemonic by default, so program exits if this is the last thread
         self.daemon = True
-        self.executor = ThreadPoolExecutor(max_workers=workers)
+
+        # Create an executor or not if no workers
+        if workers:
+
+            self.executor = ThreadPoolExecutor(max_workers=int(workers))
+            log.info('Starting with a ThreadPoolExecutor, workers=%d', workers)
+        else:
+            log.info('Executing processes inline, no workers')
+            self.executor = None
 
     def do_poll(self):
         return polling.poll(partial(self.func, *self.func_args, **self.func_kwargs),
                             check_success=self.checker, ignore_exceptions=self.ignored_exceptions,
                             timeout=self.poll_timeout, step=self.poll_interval)
+
+    def execute(self, func, *args, **kwargs):
+        if self.executor:
+            return self.executor.submit(func, *args, **kwargs), True
+        else:
+            return func(*args, **kwargs), False
 
     def run(self):
         self.running = True
@@ -70,10 +84,10 @@ class PollingThread(threading.Thread):
         while self.running:
             try:
                 result = self.do_poll()
-                process_result = self.executor.submit(self.process_func, result)
+                process_result, is_async = self.execute(self.process_func, result)
                 if self.send_last_result:
                     # This makes the process synchronous
-                    self.update_last_result(process_result)
+                    self.update_last_result(process_result, is_async)
                 if self.send_last_update_time:
                     self.func_kwargs['last_update_time'] = localized_date()
             except polling.TimeoutException:
@@ -86,13 +100,14 @@ class PollingThread(threading.Thread):
                 # Log the error, but keep polling
                 log.error("Error ocurred: %s", str(e))
 
-    def update_last_result(self, future):
-        self.func_kwargs['last_result'] = future.result()
+    def update_last_result(self, value, is_async=True):
+        self.func_kwargs['last_result'] = value.result() if is_async else value
 
     def stop(self):
         """Shut down everything in an orderly fashion"""
         self.running = False
-        self.executor.shutdown()
+        if self.executor:
+            self.executor.shutdown()
 
 
 UPDATER_DEFAULTS = {
@@ -103,11 +118,13 @@ UPDATER_DEFAULTS = {
 
 
 class TelegramPollingThread(PollingThread):
-    def __init__(self, adapter):
+    def __init__(self, adapter, workers=UPDATER_DEFAULTS.get('polling_workers')):
         self.adapter = adapter
         updater_config = UPDATER_DEFAULTS
         updater_config.update(self.adapter.config.get('updater', {}))
 
+        # If specified on the constructor, override the config
+        updater_config['polling_workers'] = workers or updater_config['polling_workers']
         super(TelegramPollingThread, self).__init__(self.fetch_updates, self.on_update,
                                                     checker=lambda x: bool(x),
                                                     ignored_exceptions=[NetworkError, Unauthorized],
@@ -127,7 +144,7 @@ class TelegramPollingThread(PollingThread):
         last_update = None
         for update in updates:
             # Execute the actual processing asynchronously
-            self.executor.submit(self.adapter.process_update, update)
+            self.execute(self.adapter.process_update, update)
             last_update = update
         if last_update:
             # This is needed so we can avoid pulling the same update twice
