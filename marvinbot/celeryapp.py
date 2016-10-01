@@ -67,7 +67,8 @@ def configure_marvinbot(sender=None, conf=None, **kwargs):
 
     from marvinbot.polling import TelegramPollingThread
 
-    adapter.updater_thread = TelegramPollingThread(adapter)
+    # No ThreadPoolExecutor when using celery
+    adapter.updater_thread = TelegramPollingThread(adapter, workers=0)
     adapter.async_available = True
     adapter.updater_thread.start()
     bot_started.send(adapter)
