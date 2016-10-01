@@ -27,6 +27,12 @@ configure_cache(config)
 configure_adapter(config)
 
 
+def real_shutdown():
+    log.info('Shutting down...')
+    bot_shutdown.send(adapter)
+    adapter.updater_thread.stop()
+
+
 def shutdown(signum, frame):
     # restore the original signal handler as otherwise evil things will happen
     # in raw_input when CTRL+C is pressed, and our signal handler is not re-entrant
@@ -34,12 +40,11 @@ def shutdown(signum, frame):
 
     try:
         if input("\nReally quit? (y/n)> ").lower().startswith('y'):
-            log.info('Shutting down...')
-            bot_shutdown.send(adapter)
-            adapter.updater_thread.stop()
+            real_shutdown()
 
     except KeyboardInterrupt:
         log.info("Ok ok, quitting")
+        real_shutdown()
         sys.exit(1)
 
     # restore the exit gracefully handler here
