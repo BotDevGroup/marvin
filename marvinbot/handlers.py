@@ -2,6 +2,7 @@ from celery import Task
 from telegram.ext.messagehandler import Filters
 from marvinbot.models import User
 from marvinbot.utils import get_message
+from marvinbot.core import get_adapter
 from datetime import datetime
 import logging
 
@@ -10,7 +11,7 @@ log = logging.getLogger(__name__)
 
 
 class Handler(object):
-    def __init__(self, callback, allow_edits=True, call_async=False, discard_threshold=300):
+    def __init__(self, callback, adapter=None, allow_edits=True, call_async=False, discard_threshold=300):
         """Initialize this handler.
 
         Parameters:
@@ -25,6 +26,7 @@ class Handler(object):
         self.allow_edits = allow_edits
         self.call_async = call_async
         self.discard_threshold = discard_threshold
+        self.adapter = adapter or get_adapter()
 
     def get_registered_user(self, message):
         """Return a registered User instance for message.
@@ -59,7 +61,7 @@ class Handler(object):
         self.do_call(update)
 
     def do_call(self, update, *args, **kwargs):
-        if self.call_async and isinstance(self.callback, Task):
+        if self.call_async and isinstance(self.callback, Task) and self.adapter.async_available:
             self.callback.s(update, *args, **kwargs).apply_async()
         else:
             self.callback(update, *args, **kwargs)

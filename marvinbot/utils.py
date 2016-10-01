@@ -76,7 +76,7 @@ def configure_mongoengine(config):
     mongoengine_connect(db_name, tz_aware=True, read_preference=ReadPreference.PRIMARY_PREFERRED, connect=False, **params)
 
 
-def load_module(modspec, config):
+def load_module(modspec, config, adapter):
     mod = importlib.import_module(modspec)
     if hasattr(mod, 'configure'):
         # Call module-level configure method, passing it's module specific config
@@ -85,14 +85,16 @@ def load_module(modspec, config):
 
     try:
         log.info('Attempting to import models for module [%s]', mod)
-        mod = importlib.import_module(modspec + ".models")
+        models_mod = importlib.import_module(modspec + ".models")
     except Exception:
         log.warn('No models loaded for [%s]', mod)
 
     try:
         # If successful, tasks will already be registered with Celery
         log.info('Attempting to import tasks for module [%s]', mod)
-        mod = importlib.import_module(modspec + ".tasks")
+        tasks_mod = importlib.import_module(modspec + ".tasks")
+        if hasattr(tasks_mod, 'setup'):
+            tasks_mod.setup(adapter)
     except Exception:
         # Module has no tasks, ignore
         log.warn('No tasks loaded for [%s]', mod)
@@ -103,14 +105,14 @@ DEFAULT_TIMEZONE = os.environ.get('TZ', CONFIG.get('default_timezone'))
 TZ = pytz.timezone(DEFAULT_TIMEZONE)
 
 
-def load_sources(config):
+def load_sources(config, adapter):
     modules_to_load = config.get("plugins")
 
     if modules_to_load:
         for module in modules_to_load:
             if module:
                 # Pass along module specific configuration, if available
-                load_module(module, config.get(module, {}))
+                load_module(module, config.get(module, {}), adapter)
 
 
 def localized_date(date=None, timezone=None):

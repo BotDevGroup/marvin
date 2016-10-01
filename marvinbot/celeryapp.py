@@ -40,7 +40,7 @@ def configure():
     )
 
     initialize(config)
-    load_sources(config)
+    load_sources(config, get_adapter())
 
     return celery
 
@@ -51,7 +51,7 @@ celery = marvinbot_app = configure()
 def setup_modules(signal, sender):
     config = get_config()
     initialize(config)
-    load_sources(config)
+    load_sources(config, get_adapter())
 
 
 @celeryd_init.connect
@@ -68,6 +68,7 @@ def configure_marvinbot(sender=None, conf=None, **kwargs):
     from marvinbot.polling import TelegramPollingThread
 
     adapter.updater_thread = TelegramPollingThread(adapter)
+    adapter.async_available = True
     adapter.updater_thread.start()
     bot_started.send(adapter)
 
