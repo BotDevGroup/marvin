@@ -6,7 +6,7 @@ Telegram Bot written in Python
 
 - [Python 3.5](https://www.python.org/downloads/release/python-352/)
 - [RabbitMQ](https://www.rabbitmq.com/download.html)
-- Memcached ([Windows](https://commaster.net/content/installing-memcached-windows)/[Ubuntu](https://memcached.org/downloads))
+- Memcached ([Windows](https://commaster.net/content/installing-memcached-windows)/[Ubuntu](https://memcached.org/downloads)/Mac just: $ brew install memcached)
 - [MongoDB](https://www.mongodb.com/download-center#community)
 
 # Getting started
