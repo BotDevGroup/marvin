@@ -1,0 +1,22 @@
+{
+    "default_timezone": "America/Santo_Domingo", 
+    "broker": "amqp://localhost",
+    "backend": "amqp://localhost",
+    "plugins": [],
+    "telegram_token": "123456:ABC-DEF1234ghIkl-zyx57W2v1u123ew11",
+    "updater": {
+        "mode": "polling",
+        "polling_interval": 0.3,
+        "polling_expiry": 5,
+        "polling_workers": 2
+    },
+    "mongodb.host": "localhost",
+    "mongodb.port": "27017",
+    "mongodb.db_name": "marvinbot",
+    "mongodb.username": "marvinbot",
+    "mongodb.password": "",
+    "cache": {
+        "backend": "dogpile.cache.memory",
+        "expiration_time": 3600
+    }
+}
