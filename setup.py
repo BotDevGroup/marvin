@@ -2,7 +2,6 @@
 
 from distutils.core import setup
 from setuptools import find_packages
-import sys
 
 
 REQUIREMENTS = [
@@ -15,13 +14,6 @@ REQUIREMENTS = [
     'polling',
 ]
 
-
-if sys.platform.startswith('linux'):
-    REQUIREMENTS += ['pylibmc']
-elif sys.platform.startswith(('win', 'cygwin')):  # Guindos
-    REQUIREMENTS += ['python-memcached']
-elif sys.platform.startswith('darwin'):  # Mac
-    REQUIREMENTS += ['pylibmc']
 
 setup(name='marvinbot',
       version='0.1',

@@ -28,14 +28,8 @@ def get_from_module(modspec, fspec, default=None):
     else:
         return default
 
-if sys.platform.startswith('linux'):
-    PLATFORM = 'linux'
-elif sys.platform.startswith(('win', 'cygwin')):  # Guindos
-    PLATFORM = 'windows'
-elif sys.platform.startswith('darwin'):  # Mac
-    PLATFORM = 'darwin'
 
-DEFAULT_CONFIG = 'default_settings.{platform}.json'.format(platform=PLATFORM)
+DEFAULT_CONFIG = 'default_settings.json'
 
 
 def get_config(config_file=None):

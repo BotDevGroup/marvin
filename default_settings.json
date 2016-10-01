@@ -15,8 +15,7 @@
     "mongodb.username": "marvinbot",
     "mongodb.password": "",
     "cache": {
-        "backend": "dogpile.cache.pylibmc",
-        "expiration_time": 3600,
-        "arguments.url": "localhost"
+        "backend": "dogpile.cache.memory",
+        "expiration_time": 3600
     }
 }
