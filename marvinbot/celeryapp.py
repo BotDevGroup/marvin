@@ -1,6 +1,6 @@
 from __future__ import absolute_import
 from celery import Celery
-from celery.signals import worker_init, worker_shutdown
+from celery.signals import worker_init, worker_shutdown, celeryd_init
 from marvinbot.utils import get_config, load_sources, configure_mongoengine
 from marvinbot.core import configure_adapter, get_periodic_tasks, get_adapter
 from marvinbot.cache import configure_cache
@@ -52,6 +52,26 @@ def setup_modules(signal, sender):
     initialize(config)
     load_sources(config)
 
-# @worker_shutdown.connect
-# def on_shutdown(signal, sender):
-#     adapter.stop()
+
+@celeryd_init.connect
+def configure_marvinbot(sender=None, conf=None, **kwargs):
+    if not sender.startswith('marvinbot_main'):
+        return
+
+    adapter = get_adapter()
+    config = adapter.config
+    updater_config = config.get('updater', {})
+    if updater_config.get('mode', 'polling_thread') != 'polling_thread':
+        return
+
+    from marvinbot.polling import TelegramPollingThread
+
+    adapter.updater_thread = TelegramPollingThread(adapter)
+    adapter.updater_thread.start()
+
+
+@worker_shutdown.connect
+def on_shutdown(signal, sender):
+    adapter = get_adapter()
+    if hasattr(adapter, 'updater_thread'):
+        adapter.updater_thread.stop()

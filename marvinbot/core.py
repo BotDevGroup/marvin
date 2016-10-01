@@ -32,13 +32,6 @@ class TelegramAdapter(object):
         self.bot = telegram.Bot(token)
         self.handlers = defaultdict(list)
 
-        try:
-            updates = self.bot.getUpdates(timeout=5)
-            if updates:
-                cache.set('last_update_id', updates[-1].update_id + 1)
-        except Exception as e:
-            log.warn("Not initializing last_update_id: %s", str(e))
-
     def fetch_updates(self, last_update_id):
         for update in self.bot.getUpdates(offset=last_update_id, timeout=int(self.config.get('fetch_timeout', 5))):
             yield update
@@ -84,18 +77,6 @@ def get_periodic_tasks(config):
     """
     # Default built-in tasks
     tasks = {}
-    updater_config = config.get('updater', {})
-
-    if updater_config.get('mode', 'polling') == 'polling':
-        tasks['fetch_messages'] = {
-            'task': 'marvinbot.tasks.fetch_messages',
-            # Fetch messages every X seconds
-            'schedule': timedelta(seconds=int(updater_config.get('polling_interval', 5))),
-            'options': {
-                # If fetch_messages takes this long to run, expire and wait for the next schedule
-                'expires': int(updater_config.get('polling_expiry', 3))
-            }
-        }
 
     if PERIODIC_TASKS:
         tasks.update(dict(PERIODIC_TASKS))

@@ -9,16 +9,16 @@ mkdir -p var/log
 
 start_celery() {
     echo "Starting celeryd"
-    $CELERY_CMD multi start marvinbot --app=marvinbot.celeryapp:marvinbot_app -l info --logfile=$CELERY_LOGFILE --pidfile=$CELERY_PIDFILE -B $@
+    $CELERY_CMD multi start marvinbot_main --app=marvinbot.celeryapp:marvinbot_app -l info --logfile=$CELERY_LOGFILE --pidfile=$CELERY_PIDFILE -B $@
 }
 
 
 stop_celery() {
-    $CELERY_CMD multi stop marvinbot --pidfile=$CELERY_PIDFILE --app=marvinbot.celeryapp:marvinbot_app
+    $CELERY_CMD multi stop marvinbot_main --pidfile=$CELERY_PIDFILE --app=marvinbot.celeryapp:marvinbot_app
 }
 
 kill_celery() {
-    $CELERY_CMD multi kill marvinbot --pidfile=$CELERY_PIDFILE --app=marvinbot.celeryapp:marvinbot_app
+    $CELERY_CMD multi kill marvinbot_main --pidfile=$CELERY_PIDFILE --app=marvinbot.celeryapp:marvinbot_app
 }
 
 

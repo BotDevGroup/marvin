@@ -17,7 +17,7 @@ mkdir var\log
 if exist var\schedule goto SCHEDULEEXISTS
 mkdir var\schedule
 :SCHEDULEEXISTS
-start celery worker --app=marvinbot.celeryapp:marvinbot_app -l info --logfile=var\log\marvinbot.worker.log --pidfile=var\marvinbot.worker.pid
+start celery worker --app=marvinbot.celeryapp:marvinbot_app -l info --logfile=var\log\marvinbot.worker.log --pidfile=var\marvinbot.worker.pid -n marvinbot_main
 start celery beat --app=marvinbot.celeryapp:marvinbot_app -l info --logfile=var\log\marvinbot.beat.log --pidfile=var\marvinbot.beat.pid -s var\schedule\celerybeat-schedule
 goto EXIT
 
@@ -29,7 +29,7 @@ mkdir var\log
 if exist var\schedule goto SCHEDULEEXISTS
 mkdir var\schedule
 :SCHEDULEEXISTS
-start celery worker --app=marvinbot.celeryapp:marvinbot_app -l debug --logfile=var\log\marvinbot.worker.log --pidfile=var\marvinbot.worker.pid 2> var\log\marvinbot.worker.err
+start celery worker -n marvinbot_main --app=marvinbot.celeryapp:marvinbot_app -l debug --logfile=var\log\marvinbot.worker.log --pidfile=var\marvinbot.worker.pid 2> var\log\marvinbot.worker.err
 start celery beat --app=marvinbot.celeryapp:marvinbot_app -l debug --logfile=var\log\marvinbot.beat.log --pidfile=var\marvinbot.beat.pid -s var\schedule\celerybeat-schedule 2> var\log\marvinbot.beat.err
 goto EXIT
 
