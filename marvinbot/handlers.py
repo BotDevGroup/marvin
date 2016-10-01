@@ -41,7 +41,7 @@ class Handler(object):
         """Return True/False if this handler can process the given update."""
         message = get_message(update, self.allow_edits)
         age = datetime.now() - message.date
-        if age.total_seconds() > self.discard_threshold:
+        if self.discard_threshold and age.total_seconds() > self.discard_threshold:
             return False
 
         return self.validate(message)
