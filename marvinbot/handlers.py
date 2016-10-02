@@ -52,13 +52,13 @@ class Handler(object):
         You need to override this method."""
         raise NotImplementedError
 
-    def process_update(self, update):
+    def process_update(self, update, *args, **kwargs):
         """Process the given update.
 
         Callbacks are expected to get a hold of the adapter (it's a singleton).
         Override if you need to do anything other than calling the callback and then
         call the parent class method."""
-        self.do_call(update)
+        self.do_call(update, *args, **kwargs)
 
     def do_call(self, update, *args, **kwargs):
         if self.call_async and isinstance(self.callback, Task) and self.adapter.async_available:
