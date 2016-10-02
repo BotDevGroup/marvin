@@ -9,17 +9,12 @@ Telegram Bot written in Python
 
 ## Optional requirements:
 - [RabbitMQ](https://www.rabbitmq.com/download.html)
-<<<<<<< HEAD
 - Memcached([Windows](https://commaster.net/content/installing-memcached-windows)/[Ubuntu](https://memcached.org/downloads)/Mac just: $ brew install memcached) 
 
 You'll need RabbitMQ if you want to run the bot with Celery support
 
 Memcached is need if you need real caching, remember to install a python
 driver (pylibmc or python-memcached) and adjust your settings accordingly. 
-=======
-- Memcached ([Windows](https://commaster.net/content/installing-memcached-windows)/[Ubuntu](https://memcached.org/downloads))
-- [MongoDB](https://www.mongodb.com/download-center#community)
->>>>>>> dda8bf40b49dcee1dd5880f2d333334eb565961f
 
 # Getting started
 
