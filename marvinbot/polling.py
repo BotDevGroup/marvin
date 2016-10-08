@@ -113,7 +113,7 @@ class PollingThread(threading.Thread):
 UPDATER_DEFAULTS = {
             'polling_interval': 0.5,
             'polling_expiry': 10,
-            'polling_workers': 2,
+            'polling_workers': 5,
         }
 
 
@@ -132,7 +132,7 @@ class TelegramPollingThread(PollingThread):
                                                     poll_interval=updater_config.get('polling_interval'),
                                                     poll_timeout=updater_config.get('polling_expiry'),
                                                     thread_name='telegram-polling-thread',
-                                                    workers=updater_config.get('polling_workers', 2))
+                                                    workers=updater_config.get('polling_workers'))
 
     def fetch_updates(self, last_result=None, last_update_time=None):
         # Fetch a list of Telegram updates for the bot, passing in the last_update_id

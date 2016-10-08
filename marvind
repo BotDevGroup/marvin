@@ -1,43 +1,53 @@
 #!/bin/sh
-
-CELERY_LOGFILE=var/log/marvinbot.celery.log
-CELERY_PIDFILE=var/marvinbot.celery.pid
-
-CELERY_CMD=celery
-
+PIDFILE=var/marvinbot.pid
+DEFAULT_LOG=var/log/marvinbot.log
 mkdir -p var/log
+CMD=./run_standalone.py
 
-start_celery() {
-    echo "Starting celeryd"
-    $CELERY_CMD multi start marvinbot_main --app=marvinbot.celeryapp:marvinbot_app -l info --logfile=$CELERY_LOGFILE --pidfile=$CELERY_PIDFILE -B $@
+start_runner() {
+    echo "Starting the bot"
+    if [ -f $PIDFILE ]; then
+        echo "Bot is running: $(cat $PIDFILE), remove $PIDFILE to force start"
+    fi
+    $CMD $>/dev/null &
+    PID=$!
+    echo $PID > $PIDFILE
+    disown $PID
 }
 
 
-stop_celery() {
-    $CELERY_CMD multi stop marvinbot_main --pidfile=$CELERY_PIDFILE --app=marvinbot.celeryapp:marvinbot_app
+stop_runner() {
+    echo "Stopping the bot"
+    if [ -f $PIDFILE ]; then
+        PID=$(cat $PIDFILE)
+        kill $PID;
+        rm $PIDFILE
+    fi
 }
 
-kill_celery() {
-    $CELERY_CMD multi kill marvinbot_main --pidfile=$CELERY_PIDFILE --app=marvinbot.celeryapp:marvinbot_app
-    sleep 2
-    # Kill them with extreme prejudice
-    ps auxww | grep 'celery worker' | awk '{print $2}' | xargs kill -9
+kill_runner() {
+    echo "Stopping the bot"
+    if [ -f $PIDFILE ]; then
+        PID=$(cat $PIDFILE)
+        kill -KILL $PID;
+        rm $PIDFILE
+    fi
 }
 
 
 status() {
-    if [ -f $CELERY_PIDFILE ]; then
-        echo "Celery is running: $(cat $CELERY_PIDFILE)"
+    if [ -f $PIDFILE ]; then
+        echo "Bot is running: $(cat $PIDFILE)"
 
     else
-        echo "Celery is not running..."
+        echo "Bot is not running..."
     fi
     exit 0
 }
 
-celery_log() {
-    if [ -f $CELERY_LOGFILE ]; then
-       tail -f $CELERY_LOGFILE
+bot_log() {
+    if [ -f $DEFAULT_LOG ]; then
+       tail -f $DEFAULT_LOG
     fi
 }
 
@@ -47,30 +57,30 @@ shell() {
 
 case $1 in
     start)
-        start_celery      
+        start_runner      
         ;;    
-    start_celery)
-        start_celery
+    start_runner)
+        start_runner
         ;;
     stop)
-        stop_celery        
+        stop_runner
         ;;    
-    stop_celery)
-        stop_celery
+    stop_runner)
+        stop_runner
         ;;
-    kill_celery)
-        kill_celery
+    kill_runner)
+        kill_runner
         ;;
     restart)
-        stop_celery        
+        stop_runner
         sleep 5
-        start_celery        
+        start_runner
         ;;
     status)
         status
         ;;
-    celery_log)
-        celery_log
+    bot_log)
+        runner_log
         ;;
     shell)
         shell

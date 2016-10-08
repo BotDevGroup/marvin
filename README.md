@@ -8,7 +8,6 @@ Telegram Bot written in Python
 - [MongoDB](https://www.mongodb.com/download-center#community)
 
 ## Optional requirements:
-- [RabbitMQ](https://www.rabbitmq.com/download.html)
 - Memcached([Windows](https://commaster.net/content/installing-memcached-windows)/[Ubuntu](https://memcached.org/downloads)/Mac just: $ brew install memcached) 
 
 You'll need RabbitMQ if you want to run the bot with Celery support
@@ -37,9 +36,9 @@ This is also a good time to add any plugins.
     
 # Running the bot:
 
-## Using Celery 
+## Normal run 
 
-To start the bot with celery (allows for asynchronous tasks, and scheduled tasks):
+To start the bot:
 
     (venv)$ ./marvind start
     
@@ -49,12 +48,12 @@ To stop the bot:
     
 To tail the logs:
 
-    (venv)$ ./marvind celery_log
+    (venv)$ ./marvind bot_log
     
-## Running in standalone mode
+## Running in standalone mode [For dev]
 
-This mode is for dev purposes and for people running on Windows who can't or
-aren't willing to run Celery.
+This mode is for dev purposes and for people running on Windows who don't have
+proper shell facilities.
 
 To start the bot:
 
@@ -69,7 +68,6 @@ Running in this mode only requires MongoDB to be running.
 
 If you want a shell and a great debugger:
     
-    $ pip install ipython ipdb
     $ ./marvind shell
 
 
@@ -78,8 +76,8 @@ If you want a shell and a great debugger:
 1. Go ahead and talk to [@BotFather](https://telegram.me/BotFather) to generate your bot token key.
 2. Now that you have your token already generated go to settings.json and add your token to `"telegram_token": "Your Token Goes Here"`
 3. Make sure you have rabbitmq and memcached installed in your system. 
-4. Go to the directory of the bot in your terminal and type `./marvind start`, once the bot has started, you'll see a message saying "OK". 
-5. Now open Telegram, go to your bot and say '/hello' :)
+4. Go to the directory of the bot in your terminal and type `./marvind start`.
+5. Now open Telegram, go to your bot and say '/test' :)
 
 
 
@@ -97,17 +95,16 @@ This article assumes that you have user with sudo privileges. (DON'T USE ROOT FO
 #####Ubuntu 
 (tested in Ubuntu 16.04)
 
-	$ sudo apt-get install git python3.5 python3-all-dev python3-pylibmc python3-pip python3-celery python3-dogpile.cache python3-dateutil python3-sqlalchemy python3-blinker rabbitmq-server memcached 
+	$ sudo apt-get install git python3.5 python3-all-dev python3-pylibmc python3-pip python3-celery python3-dogpile.cache python3-dateutil python3-sqlalchemy python3-blinker memcached 
 	$ sudo apt-get install -y libmemcached-dev zlib1g-dev libssl-dev python-dev build-essential
 
 #####Arch Linux
-    $ sudo pacman -S memcached rabbitmq mongodb libmemcached boost
+    $ sudo pacman -S memcached mongodb libmemcached boost
 
-Step two - Install `celery` and `mongoengine`:
+Step two - Install `mongoengine`:
 
 Check for celery if is the requirement version:
 
-	$ pip install --upgrade "celery==3.1.23"
 	$ pip install mongoengine
 
 Step three - Install `virtualenv`:
@@ -122,7 +119,7 @@ Activate the `virtualenv`. Remember to run this inside the project:
 You should now see `(venv) user@host:~$`.
 
 
-# Plugins
+# Making Plugins
 
 See the [sample plugin](https://github.com/BotDevGroup/marvinbot_sample_plugin)
 

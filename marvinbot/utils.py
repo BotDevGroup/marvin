@@ -9,6 +9,7 @@ import os
 import json
 import sys
 import logging
+import logging.config
 
 log = logging.getLogger(__name__)
 
@@ -40,19 +41,27 @@ def get_config(config_file=None):
     the configuration from a path relative to the marvinbot module. If none of that is successful, tries to load it
     from the current working directory.
     """
+    config = {}
+    if os.path.exists(DEFAULT_CONFIG):
+        with open(DEFAULT_CONFIG, 'r') as f:
+            config.update(json.load(f))
+
     if not config_file:
         config_file = os.environ.get('MARVINBOT_CONFIG') or 'settings.json'
 
     if os.path.exists(config_file):
         with open(config_file, 'r') as f:
-            config = json.load(f)
-    elif os.path.exists(DEFAULT_CONFIG):
-        with open(DEFAULT_CONFIG, 'r') as f:
-            config = json.load(f)
+            config.update(json.load(f))
+
     else:
         raise ValueError('ConfigFile [{}] not found'.format(config_file))
 
     return config
+
+
+def configure_logging(config):
+    options = config.get('logging', {})
+    logging.config.dictConfig(options)
 
 
 def configure_mongoengine(config):
@@ -77,11 +86,15 @@ def configure_mongoengine(config):
 
 
 def load_module(modspec, config, adapter):
-    mod = importlib.import_module(modspec)
-    if hasattr(mod, 'configure'):
-        # Call module-level configure method, passing it's module specific config
-        log.info('Calling configure() for module [%s]', mod)
-        mod.configure(config)
+    try:
+        mod = importlib.import_module(modspec)
+        if hasattr(mod, 'configure'):
+            # Call module-level configure method, passing it's module specific config
+            log.info('Calling configure() for module [%s]', mod)
+            mod.configure(config)
+    except Exception as e:
+        log.warn("Plugin {} not loaded due to an error: {}".format(modspec, str(e)))
+        return
 
     try:
         log.info('Attempting to import models for module [%s]', mod)

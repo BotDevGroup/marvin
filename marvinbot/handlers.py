@@ -1,4 +1,3 @@
-from celery import Task
 from telegram.ext.messagehandler import Filters
 from marvinbot.models import User
 from marvinbot.utils import get_message
@@ -12,7 +11,7 @@ log = logging.getLogger(__name__)
 
 
 class Handler(object):
-    def __init__(self, callback, adapter=None, allow_edits=True, call_async=False, discard_threshold=300):
+    def __init__(self, callback, adapter=None, allow_edits=True, discard_threshold=300):
         """Initialize this handler.
 
         Parameters:
@@ -25,7 +24,6 @@ class Handler(object):
         if not self.callback:
             raise ValueError('Callback is required')
         self.allow_edits = allow_edits
-        self.call_async = call_async
         self.discard_threshold = discard_threshold
         self.adapter = adapter or get_adapter()
 
@@ -59,13 +57,7 @@ class Handler(object):
         Callbacks are expected to get a hold of the adapter (it's a singleton).
         Override if you need to do anything other than calling the callback and then
         call the parent class method."""
-        self.do_call(update, *args, **kwargs)
-
-    def do_call(self, update, *args, **kwargs):
-        if self.call_async and isinstance(self.callback, Task) and self.adapter.async_available:
-            self.callback.s(update, *args, **kwargs).apply_async()
-        else:
-            self.callback(update, *args, **kwargs)
+        self.callback(update, *args, **kwargs)
 
 
 class ArgumentParsingError(Exception):

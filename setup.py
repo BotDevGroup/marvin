@@ -6,12 +6,14 @@ from setuptools import find_packages
 
 REQUIREMENTS = [
     'python-telegram-bot==5.1.0',
-    'celery==3.1.23',
     'blinker',
     'python-dateutil',
     'dogpile.cache==0.6.2',
     'mongoengine==0.10.6',
     'polling',
+    'pytz',
+    'ipython',
+    'ipdb',
 ]
 
 

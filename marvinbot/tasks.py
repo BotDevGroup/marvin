@@ -1,9 +1,6 @@
-from marvinbot.celeryapp import marvinbot_app
 from marvinbot.core import get_adapter
-from celery.utils.log import get_task_logger
 from marvinbot.signals import bot_started, bot_shutdown
-from marvinbot.models import User
-from marvinbot.handlers import CommandHandler, Filters
+from marvinbot.handlers import CommandHandler
 import logging
 
 log = logging.getLogger(__name__)
@@ -20,14 +17,13 @@ def on_shutdown(adapter):
     adapter.notify_owners('❌ *Bot shutting down*')
 
 
-@marvinbot_app.task
 def you_there(update, *args, **kwargs):
     log.info("Responding to you_there: args: %s, kwargs: %s", str(args), str(kwargs))
     update.message.reply_text('Me here 👀, are _you_? args:"{}", kwargs: "{}"'.format(str(args), str(kwargs)),
                               parse_mode='Markdown')
 
 
-adapter.add_handler(CommandHandler('test', you_there, call_async=False,
+adapter.add_handler(CommandHandler('test', you_there,
                                    command_description="Sends back a simple response")
                     .add_argument('--foo', help='foo help')
                     .add_argument('--bar', help='bar help'), 0)
