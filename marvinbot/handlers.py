@@ -169,3 +169,8 @@ class MessageHandler(Handler):
 
     def __str__(self):
         return str(self.filters)
+
+
+class CommonFilters(Filters):
+    # TODO: Append any commonly used filters here
+    pass
