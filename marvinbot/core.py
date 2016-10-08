@@ -35,7 +35,7 @@ class TelegramAdapter(object):
         for update in self.bot.getUpdates(offset=last_update_id, timeout=int(self.config.get('fetch_timeout', 5))):
             yield update
 
-    def add_handler(self, handler, priority=0):
+    def add_handler(self, handler, priority=1):
         log.info("Adding handler: {}, priority: {}".format(handler, priority))
         self.handlers[priority].append(handler)
 
