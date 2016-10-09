@@ -66,10 +66,12 @@ class PollingThread(threading.Thread):
             log.info('Executing processes inline, no workers')
             self.executor = None
 
-    def do_poll(self):
+    def do_poll(self, cur_interval=None):
+        if not cur_interval:
+            cur_interval = self.poll_interval
         return polling.poll(partial(self.func, *self.func_args, **self.func_kwargs),
                             check_success=self.checker, ignore_exceptions=self.ignored_exceptions,
-                            timeout=self.poll_timeout, step=self.poll_interval)
+                            timeout=self.poll_timeout, step=cur_interval)
 
     def execute(self, func, *args, **kwargs):
         if self.executor:
@@ -81,24 +83,37 @@ class PollingThread(threading.Thread):
         self.running = True
         log.info("Starting polling thread")
 
+        cur_interval = self.poll_interval
         while self.running:
             try:
-                result = self.do_poll()
+                result = self.do_poll(cur_interval)
                 process_result, is_async = self.execute(self.process_func, result)
                 if self.send_last_result:
                     # This makes the process synchronous
                     self.update_last_result(process_result, is_async)
                 if self.send_last_update_time:
                     self.func_kwargs['last_update_time'] = localized_date()
+                cur_interval = self.poll_interval
             except polling.TimeoutException:
                 # If true, abort immediately
                 if self.hard_timeout:
                     self.running = False
                 log.debug("Timeout triggered")
-                continue
             except Exception as e:
                 # Log the error, but keep polling
-                log.error("Error ocurred: %s", str(e))
+                log.error("Error ocurred (polling every %f seconds now): %s", cur_interval, str(e))
+                # Temporarily increase the polling interval on errors
+                cur_interval = self.adjust_interval(cur_interval)
+
+    @staticmethod
+    def adjust_interval(cur_interval):
+        if cur_interval == 0:
+            cur_interval = 1
+        elif cur_interval < 30:
+            cur_interval += cur_interval / 2
+        elif cur_interval > 30:
+            cur_interval = 30
+        return cur_interval
 
     def update_last_result(self, value, is_async=True):
         self.func_kwargs['last_result'] = value.result() if is_async else value
