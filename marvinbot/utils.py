@@ -7,7 +7,6 @@ import pytz
 import importlib
 import os
 import json
-import sys
 import logging
 import logging.config
 
@@ -61,6 +60,11 @@ def get_config(config_file=None):
 
 def configure_logging(config):
     options = config.get('logging', {})
+
+    # Create the default log dir, just in case
+    if not os.path.exists('var/log'):
+        os.makedirs('var/log', exist_ok=True)
+
     logging.config.dictConfig(options)
 
 
