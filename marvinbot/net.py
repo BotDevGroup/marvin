@@ -17,7 +17,10 @@ WORKERS = None
 
 METHOD_MAP = {
     'get': requests.get,
+    'delete': requests.delete,
+    'put': requests.put,
     'post': requests.post,
+    'patch': requests.patch,
 }
 
 
