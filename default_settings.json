@@ -8,6 +8,10 @@
         "polling_expiry": 5,
         "polling_workers": 5
     },
+    "downloader": {
+        "download_path": "var/files",
+        "workers": 2
+    },
     "mongodb.host": "localhost",
     "mongodb.port": "27017",
     "mongodb.db_name": "marvinbot",

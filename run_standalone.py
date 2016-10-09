@@ -18,7 +18,9 @@ configure_cache(config)
 
 from marvinbot.core import get_adapter, configure_adapter
 from marvinbot.runner import run_bot, shutdown_bot
+from marvinbot.net import configure_downloader
 configure_adapter(config)
+configure_downloader(config)
 
 
 def confirm_shutdown(signum, frame):

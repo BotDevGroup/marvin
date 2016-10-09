@@ -58,31 +58,32 @@ class TelegramAdapter(object):
             self.bot.sendMessage(owner.id, message, parse_mode=parse_mode)
 
 
-def add_periodic_task(name, schedule, task, options=None, *args, **kwargs):
-    """Register a periodic task.
+# TODO(wcx): Implement an alternate scheduler
+# def add_periodic_task(name, schedule, task, options=None, *args, **kwargs):
+#     """Register a periodic task.
 
-    Schedule can be a python datetime.timedelta object or a celery crontab object."""
-    PERIODIC_TASKS[name] = {
-        'task': task,
-        'schedule': schedule,
-    }
-    if args:
-        PERIODIC_TASKS[name]['args'] = args
-    if kwargs:
-        PERIODIC_TASKS[name]['kwargs'] = kwargs
-    if options:
-        PERIODIC_TASKS[name]['options'] = options
+#     Schedule can be a python datetime.timedelta  crontab object."""
+#     PERIODIC_TASKS[name] = {
+#         'task': task,
+#         'schedule': schedule,
+#     }
+#     if args:
+#         PERIODIC_TASKS[name]['args'] = args
+#     if kwargs:
+#         PERIODIC_TASKS[name]['kwargs'] = kwargs
+#     if options:
+#         PERIODIC_TASKS[name]['options'] = options
 
 
-def get_periodic_tasks(config):
-    """Returns a list of periodic tasks in a format Celerybeat understands.
+# def get_periodic_tasks(config):
+#     """Returns a list of periodic tasks in a format Celerybeat understands.
 
-    This includes both built-in tasks and any tasks that might have been added by
-    plugins by calling `add_periodic_task`.
-    """
-    # Default built-in tasks
-    tasks = {}
+#     This includes both built-in tasks and any tasks that might have been added by
+#     plugins by calling `add_periodic_task`.
+#     """
+#     # Default built-in tasks
+#     tasks = {}
 
-    if PERIODIC_TASKS:
-        tasks.update(dict(PERIODIC_TASKS))
-    return tasks
+#     if PERIODIC_TASKS:
+#         tasks.update(dict(PERIODIC_TASKS))
+#     return tasks

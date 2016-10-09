@@ -20,4 +20,6 @@ from marvinbot.core import get_adapter, configure_adapter
 configure_adapter(config)
 adapter = get_adapter()
 from marvinbot.tasks import *
+from marvinbot.net import *
+configure_downloader(config)
 load_sources(config, adapter)
