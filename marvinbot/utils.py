@@ -124,12 +124,13 @@ TZ = pytz.timezone(DEFAULT_TIMEZONE)
 
 def load_sources(config, adapter):
     modules_to_load = config.get("plugins")
+    plugin_configs = config.get("plugin_configuration", {})
 
     if modules_to_load:
         for module in modules_to_load:
             if module:
                 # Pass along module specific configuration, if available
-                load_module(module, config.get(module, {}), adapter)
+                load_module(module, plugin_configs.get(module, {}), adapter)
 
 
 def localized_date(date=None, timezone=None):

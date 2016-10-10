@@ -1,6 +1,7 @@
 {
     "default_timezone": "America/Santo_Domingo",
     "plugins": [],
+    "plugin_configuration": {},
     "telegram_token": "123456:ABC-DEF1234ghIkl-zyx57W2v1u123ew11",
     "updater": {
         "mode": "polling",
