@@ -4,9 +4,11 @@ import os
 import readline
 from pprint import pprint
 
+from marvinbot.log import configure_logging
 from marvinbot import *
 from marvinbot.models import *
-from marvinbot.utils import get_config, load_sources, configure_mongoengine, configure_logging
+from marvinbot.core import load_sources
+from marvinbot.utils import get_config, configure_mongoengine
 from marvinbot.cache import configure_cache
 import logging
 

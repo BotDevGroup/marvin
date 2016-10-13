@@ -3,6 +3,8 @@ from marvinbot.errors import HandlerException
 from marvinbot.models import User
 import telegram
 import logging
+import importlib
+import traceback
 
 log = logging.getLogger(__name__)
 PERIODIC_TASKS = OrderedDict()
@@ -43,14 +45,16 @@ class TelegramAdapter(object):
         log.info("Processing update: %s", update)
         for priority in sorted(self.handlers):
             for handler in self.handlers[priority]:
+                log.debug('Trying handler: ', handler)
                 if handler.can_handle(update):
+                    log.debug('Using handler: ', handler)
                     try:
                         handler.process_update(update)
                         return
-                    except HandlerException as e:
-                        self.notify_owners("⚠ Handler Error: {}".format(str(e)))
-                        log.error(e)
-                        raise e
+                    except Exception as e:
+                        log.exception(e)
+                        # self.notify_owners(r"⚠ Handler Error: ```{}```".format(traceback.format_exc()))
+                        raise HandlerException from e
 
     def notify_owners(self, message, parse_mode='Markdown'):
         owners = User.objects.filter(role='owner')
@@ -87,3 +91,45 @@ class TelegramAdapter(object):
 #     if PERIODIC_TASKS:
 #         tasks.update(dict(PERIODIC_TASKS))
 #     return tasks
+
+
+def load_module(modspec, config, adapter):
+    try:
+        mod = importlib.import_module(modspec)
+        if hasattr(mod, 'configure'):
+            # Call module-level configure method, passing it's module specific config
+            log.info('Calling configure() for module [%s]', mod)
+            mod.configure(config)
+    except Exception as e:
+        log.warn("Plugin [{}] not loaded due to an error".format(modspec))
+        log.exception(e)
+        return
+
+    try:
+        log.info('Attempting to import models for module [%s]', mod)
+        models_mod = importlib.import_module(modspec + ".models")
+    except Exception as e:
+        log.warn('No models loaded for [%s]: %s', mod, e)
+        log.exception(e)
+
+    try:
+        # If successful, tasks will already be registered with Celery
+        log.info('Attempting to import tasks for module [%s]', mod)
+        tasks_mod = importlib.import_module(modspec + ".tasks")
+        if hasattr(tasks_mod, 'setup'):
+            tasks_mod.setup(adapter)
+    except Exception as e:
+        # Module has no tasks, ignore
+        log.warn('No tasks loaded for [%s]', mod)
+        log.exception(e)
+
+
+def load_sources(config, adapter):
+    modules_to_load = config.get("plugins")
+    plugin_configs = config.get("plugin_configuration", {})
+
+    if modules_to_load:
+        for module in modules_to_load:
+            if module:
+                # Pass along module specific configuration, if available
+                load_module(module, plugin_configs.get(module, {}), adapter)

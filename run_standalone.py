@@ -1,5 +1,6 @@
 #!/usr/bin/env ipython
-from marvinbot.utils import get_config, configure_mongoengine, configure_logging
+from marvinbot.log import configure_logging
+from marvinbot.utils import get_config, configure_mongoengine
 from marvinbot.cache import configure_cache
 import logging
 import os

@@ -8,7 +8,6 @@ import importlib
 import os
 import json
 import logging
-import logging.config
 
 log = logging.getLogger(__name__)
 
@@ -58,16 +57,6 @@ def get_config(config_file=None):
     return config
 
 
-def configure_logging(config):
-    options = config.get('logging', {})
-
-    # Create the default log dir, just in case
-    if not os.path.exists('var/log'):
-        os.makedirs('var/log', exist_ok=True)
-
-    logging.config.dictConfig(options)
-
-
 def configure_mongoengine(config):
     if isinstance(config, dict):
         host = config.get("mongodb.host", "localhost")
@@ -89,48 +78,9 @@ def configure_mongoengine(config):
     mongoengine_connect(db_name, tz_aware=True, read_preference=ReadPreference.PRIMARY_PREFERRED, connect=False, **params)
 
 
-def load_module(modspec, config, adapter):
-    try:
-        mod = importlib.import_module(modspec)
-        if hasattr(mod, 'configure'):
-            # Call module-level configure method, passing it's module specific config
-            log.info('Calling configure() for module [%s]', mod)
-            mod.configure(config)
-    except Exception as e:
-        log.warn("Plugin {} not loaded due to an error: {}".format(modspec, str(e)))
-        return
-
-    try:
-        log.info('Attempting to import models for module [%s]', mod)
-        models_mod = importlib.import_module(modspec + ".models")
-    except Exception:
-        log.warn('No models loaded for [%s]', mod)
-
-    try:
-        # If successful, tasks will already be registered with Celery
-        log.info('Attempting to import tasks for module [%s]', mod)
-        tasks_mod = importlib.import_module(modspec + ".tasks")
-        if hasattr(tasks_mod, 'setup'):
-            tasks_mod.setup(adapter)
-    except Exception:
-        # Module has no tasks, ignore
-        log.warn('No tasks loaded for [%s]', mod)
-
-
 CONFIG = get_config()
 DEFAULT_TIMEZONE = os.environ.get('TZ', CONFIG.get('default_timezone'))
 TZ = pytz.timezone(DEFAULT_TIMEZONE)
-
-
-def load_sources(config, adapter):
-    modules_to_load = config.get("plugins")
-    plugin_configs = config.get("plugin_configuration", {})
-
-    if modules_to_load:
-        for module in modules_to_load:
-            if module:
-                # Pass along module specific configuration, if available
-                load_module(module, plugin_configs.get(module, {}), adapter)
 
 
 def localized_date(date=None, timezone=None):

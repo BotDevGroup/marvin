@@ -1,4 +1,4 @@
-from marvinbot.utils import load_sources
+from marvinbot.core import load_sources
 from marvinbot.signals import bot_shutdown, bot_started
 from marvinbot.polling import TelegramPollingThread
 import logging
