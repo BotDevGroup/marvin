@@ -87,6 +87,7 @@ class CommandHandler(Handler):
         self._arg_parser = BotArgumentParser(prog='/{}'.format(self.command),
                                              description=command_description,
                                              epilog=command_epilog, add_help=False)
+        self.description = command_description
         if required_roles:
             if not isinstance(required_roles, list):
                 self.required_roles = [required_roles]

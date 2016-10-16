@@ -90,6 +90,20 @@ class TelegramAdapter(object):
     def plugin_definition(self, plugin_name):
         return self.plugin_registry.get(plugin_name)
 
+    def commands(self, exclude_internal=False):
+        from marvinbot.handlers import CommandHandler
+        result = OrderedDict()
+        for priority, handlers in self.handlers.items():
+            if exclude_internal and priority == 0:
+                continue
+            for handler in handlers:
+                if exclude_internal and handler.plugin is None:
+                    continue
+                if isinstance(handler, CommandHandler):
+                    result[handler.command] = handler
+        return result
+
+
 # TODO(wcx): Implement an alternate scheduler
 # def add_periodic_task(name, schedule, task, options=None, *args, **kwargs):
 #     """Register a periodic task.

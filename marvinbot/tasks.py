@@ -96,6 +96,19 @@ def manage_users(update, *args, **kwargs):
         update.message.reply_text('✅ User permissions updated')
 
 
+def commands_list(update, *args, **kwargs):
+    exclude_internal = kwargs.get('exclude_internal')
+    lst = []
+    for cmd in adapter.commands(exclude_internal).values():
+        lst.append('{cmd} - {description}'.format(cmd=cmd.command,
+                                                  description=cmd.description))
+
+    if lst:
+        update.message.reply_text('\n'.join(lst))
+    else:
+        update.message.reply_text('No commands registered')
+
+
 adapter.add_handler(CommandHandler('plugins', plugin_control,
                                    command_description='[Admin] Enable/Disable plugins. If no arguments are passed, '
                                    'display a list of registered plugins', required_roles=POWER_USERS)
@@ -110,3 +123,7 @@ adapter.add_handler(CommandHandler('users', manage_users, required_roles=OWNER_R
                                    command_description='Add a user', unauthorized_response='403, motherfucker')
                     .add_argument('--role', default=DEFAULT_ROLE, choices=USER_ROLES)
                     .add_argument('--forget', action='store_true'), 0)
+
+adapter.add_handler(CommandHandler('commands_list', commands_list,
+                                   command_description='Returns a list of commands supported by the bot')
+                    .add_argument('--exclude_internal', action='store_true', help="Exclude internal bot commmands"), 0)
