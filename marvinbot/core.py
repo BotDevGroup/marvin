@@ -33,6 +33,7 @@ class TelegramAdapter(object):
         self.bot = telegram.Bot(token)
         self.handlers = defaultdict(list)
         self.plugin_registry = {}
+        self.bot_info = self.bot.getMe()
 
     def fetch_updates(self, last_update_id=None):
         for update in self.bot.getUpdates(offset=last_update_id, timeout=int(self.config.get('fetch_timeout', 5))):

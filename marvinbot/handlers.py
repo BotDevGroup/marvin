@@ -113,8 +113,13 @@ class CommandHandler(Handler):
         return self._arg_parser.format_help()
 
     def validate(self, message):
+        cmd = message.text[1:].split(' ')[0].split('@', 1)
+        if len(cmd) > 1:
+            target_bot = cmd[1]
+            if target_bot != self.adapter.bot_info.username:
+                return False
         return (message.text and message.text.startswith('/')
-                and message.text[1:].split(' ')[0].split('@')[0] == self.command)
+                and cmd[0] == self.command)
 
     def process_update(self, update):
         message = get_message(update, self.allow_edits)
