@@ -46,7 +46,9 @@ def plugin_control(update, *args, **kwargs):
 
     if kwargs.get('reload'):
         for plugin in kwargs.get('reload', []):
-            plugin_reload.send(adapter.plugin_definition(plugin), update=update)
+            p = adapter.plugin_definition(plugin)
+            if p.enabled:
+                plugin_reload.send(p, update=update)
 
     update.message.reply_text(format_plugins(), parse_mode='Markdown')
 
