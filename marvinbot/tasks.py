@@ -98,10 +98,14 @@ def manage_users(update, *args, **kwargs):
 
 def commands_list(update, *args, **kwargs):
     exclude_internal = kwargs.get('exclude_internal')
+    plain = kwargs.get('plain')
+    bot_name = adapter.bot_info.username
     lst = []
     for cmd in adapter.commands(exclude_internal).values():
-        lst.append('{cmd} - {description}'.format(cmd=cmd.command,
-                                                  description=cmd.description))
+        lst.append('{prefix}{cmd}{bot_name} - {description}'.format(cmd=cmd.command,
+                                                                    description=cmd.description,
+                                                                    prefix='' if plain else '/',
+                                                                    bot_name='' if plain else '@' + bot_name))
 
     if lst:
         update.message.reply_text('\n'.join(lst))
@@ -124,6 +128,7 @@ adapter.add_handler(CommandHandler('users', manage_users, required_roles=OWNER_R
                     .add_argument('--role', default=DEFAULT_ROLE, choices=USER_ROLES)
                     .add_argument('--forget', action='store_true'), 0)
 
-adapter.add_handler(CommandHandler('commands_list', commands_list, required_roles=POWER_USERS,
+adapter.add_handler(CommandHandler('commands_list', commands_list,
                                    command_description='Returns a list of commands supported by the bot')
-                    .add_argument('--exclude_internal', action='store_true', help="Exclude internal bot commmands"), 0)
+                    .add_argument('--exclude_internal', action='store_true', help="Exclude internal bot commmands")
+                    .add_argument('--plain', action='store_true', help='Plain format (for sending to @BotFather)'), 0)
