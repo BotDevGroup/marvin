@@ -55,8 +55,12 @@ class Plugin(object):
         if not name:
             raise ValueError('Name is required')
         self.name = name
+
+        # These will get filled in by the plugin loader later
         self.config = config
-        self.enabled = True
+        self.modspec = None
+        self.adapter = None
+        self.enabled = enabled
 
     def get_default_config(self):
         """Returns a dict with the default config for the plugin.
