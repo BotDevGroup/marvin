@@ -124,6 +124,6 @@ adapter.add_handler(CommandHandler('users', manage_users, required_roles=OWNER_R
                     .add_argument('--role', default=DEFAULT_ROLE, choices=USER_ROLES)
                     .add_argument('--forget', action='store_true'), 0)
 
-adapter.add_handler(CommandHandler('commands_list', commands_list,
+adapter.add_handler(CommandHandler('commands_list', commands_list, required_roles=POWER_USERS,
                                    command_description='Returns a list of commands supported by the bot')
                     .add_argument('--exclude_internal', action='store_true', help="Exclude internal bot commmands"), 0)
