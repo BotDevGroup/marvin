@@ -12,16 +12,19 @@ __all__ = ['load_module', 'load_plugins', 'Plugin']
 
 def load_module(modspec, config, adapter):
     enabled = config.pop('enabled', True)
-    short_name = config.get('short_name', modspec)
+    short_name = config.get('short_name')
     mod = importlib.import_module(modspec)
     if hasattr(mod, 'plugin'):
         plugin = mod.plugin
     else:
         plugin = Plugin(short_name, modspec, adapter)
 
-    plugin.name = short_name
+    if short_name:
+        plugin.name = short_name
     plugin.config = config
+    plugin.adapter = adapter
     plugin.enabled = enabled
+    plugin.modspec = modspec
 
     adapter.add_plugin(plugin)
     plugin.load()
@@ -48,18 +51,11 @@ def load_plugins(config, adapter):
 
 class Plugin(object):
     """An object representing a bot plugin"""
-    def __init__(self, name, modspec, adapter, enabled=True, config=None):
+    def __init__(self, name, enabled=True, config=None):
         if not name:
             raise ValueError('Name is required')
         self.name = name
         self.config = config
-        self.module = importlib.import_module(modspec)
-        if not modspec:
-            raise ValueError('Modspec is required')
-        self.modspec = modspec
-        if not adapter:
-            raise ValueError('An adapter is required')
-        self.adapter = adapter
         self.enabled = True
 
     def get_default_config(self):
@@ -95,7 +91,7 @@ class Plugin(object):
 
     def _do_load_models(self):
         try:
-            log.info('[%s] Attempting to import models for module [%s]', self.modspec)
+            log.info('[%s] Attempting to import models', self.name)
             models_mod = importlib.import_module(self.modspec + ".models")
         except Exception as e:
             log.warn('[%s] No models loaded for [%s]', self.name, self.module)
@@ -120,6 +116,11 @@ class Plugin(object):
 
     def load(self):
         log.info("Loading plugin [%s]", self.name)
+        if not self.adapter:
+            raise ValueError('An adapter is required')
+        if not self.modspec:
+            raise ValueError('Modspec is required')
+        self.module = importlib.import_module(self.modspec)
         self._do_configure()
         self._do_load_models()
         self._do_setup_handlers()

@@ -46,7 +46,7 @@ def plugin_control(update, *args, **kwargs):
 
     if kwargs.get('reload'):
         for plugin in kwargs.get('reload', []):
-            plugin_reload.send(adapter.plugin_definition(plugin))
+            plugin_reload.send(adapter.plugin_definition(plugin), update=update)
 
     update.message.reply_text(format_plugins(), parse_mode='Markdown')
 
@@ -58,7 +58,7 @@ adapter.add_handler(CommandHandler('test', you_there,
 
 adapter.add_handler(CommandHandler('plugins', plugin_control,
                                    command_description='[Admin] Enable/Disable plugins. If no arguments are passed, '
-                                   'display a list of registered plugins', reqruied_roles=['admin', 'owner'])
+                                   'display a list of registered plugins', required_roles=['admin', 'owner'])
                     .add_argument('--enable', nargs='+', metavar="PLUGIN", help='enables the listed plugins')
                     .add_argument('--disable', nargs='+', metavar="PLUGIN", help='disables the listed plugins')
                     .add_argument('--reload', nargs='+', metavar="PLUGIN", help='signals the specified plugins to reload, if supported'), 0)
