@@ -117,7 +117,7 @@ class CommandHandler(Handler):
         cmd = message.text[1:].split(' ')[0].split('@', 1)
         if len(cmd) > 1:
             target_bot = cmd[1]
-            if target_bot != self.adapter.bot_info.username:
+            if target_bot.lower() != self.adapter.bot_info.username.lower():
                 return False
         return (message.text and message.text.startswith('/')
                 and cmd[0] == self.command)
