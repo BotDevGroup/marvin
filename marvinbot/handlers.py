@@ -79,9 +79,11 @@ class BotArgumentParser(argparse.ArgumentParser):
 class CommandHandler(Handler):
     def __init__(self, command, callback, command_description=None,
                  command_epilog=None, required_roles=None,
+                 unauthorized_response=None,
                  *args, **kwargs):
         self.command = command
         self.required_roles = None
+        self.unauthorized_response = unauthorized_response
         self._arg_parser = BotArgumentParser(prog='/{}'.format(self.command),
                                              description=command_description,
                                              epilog=command_epilog, add_help=False)
@@ -111,18 +113,20 @@ class CommandHandler(Handler):
         return self._arg_parser.format_help()
 
     def validate(self, message):
-        if self.required_roles:
-            user = self.get_registered_user(message)
-            if not user:
-                return False
-            if user.role not in self.required_roles:
-                return False
-
         return (message.text and message.text.startswith('/')
                 and message.text[1:].split(' ')[0].split('@')[0] == self.command)
 
     def process_update(self, update):
         message = get_message(update, self.allow_edits)
+        if self.required_roles:
+            user = self.get_registered_user(message)
+            if not user:
+                return False
+            if user.role not in self.required_roles:
+                if self.unauthorized_response:
+                    message.reply_text(self.unauthorized_response)
+                return False
+
         # Telegram replaces -- with —, let's replace and split everything nicely
         command_str = message.text.replace('—', '--').split(' ')[1:] or []
 
