@@ -113,3 +113,17 @@ def get_message(update, allow_edited=True):
         message = update.message or update.edited_message
         return message
     return update.message
+
+
+def trim_dict(dict):
+    # TODO add recursivity
+    return {k: v for k, v in dict if v}
+
+
+def trim_accents(str):
+    accents = ['á', 'é', 'í', 'ó', 'ú']
+    replacements = ['a', 'e', 'i', 'o', 'u']
+    for k, v in zip(accents, replacements):
+        if k in str:
+            str = str.replace(k, v)
+    return str
