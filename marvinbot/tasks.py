@@ -1,6 +1,8 @@
 from marvinbot.core import get_adapter
 from marvinbot.signals import bot_started, bot_shutdown, plugin_reload
 from marvinbot.handlers import CommandHandler
+from marvinbot.defaults import USER_ROLES, DEFAULT_ROLE, OWNER_ROLE, POWER_USERS
+from marvinbot.models import User, make_token
 import logging
 
 log = logging.getLogger(__name__)
@@ -15,12 +17,6 @@ def on_start(adapter):
 @bot_shutdown.connect
 def on_shutdown(adapter):
     adapter.notify_owners('❌ *Bot shutting down*')
-
-
-def you_there(update, *args, **kwargs):
-    log.info("Responding to you_there: args: %s, kwargs: %s", str(args), str(kwargs))
-    update.message.reply_text('Me here 👀, are _you_? args:"{}", kwargs: "{}"'.format(str(args), str(kwargs)),
-                              parse_mode='Markdown')
 
 
 def format_plugins():
@@ -53,14 +49,64 @@ def plugin_control(update, *args, **kwargs):
     update.message.reply_text(format_plugins(), parse_mode='Markdown')
 
 
-adapter.add_handler(CommandHandler('test', you_there,
-                                   command_description="Sends back a simple response")
-                    .add_argument('--foo', help='foo help')
-                    .add_argument('--bar', help='bar help'), 0)
+def authenticate(update, *args, **kwargs):
+    token = kwargs.get('token')
+    u, created = User.from_telegram(update.message.from_user)
+
+    owners = User.objects.filter(role='owner')
+    if u not in owners and not token and not created:
+        update.message.reply_text("Your role is: *{}*".format(u.role), parse_mode='Markdown')
+        return
+    if u in owners:
+        update.message.reply_text("You are my master")
+        return
+
+    if not created and make_token(u) == token:
+        u.role = OWNER_ROLE
+        u.auth_token = None
+        u.save()
+
+        update.message.reply_text("Reporting for duty, master.", parse_mode='Markdown')
+    elif not token:
+        # New user, provide instructions to become the owner
+        u.auth_token = make_token(u)
+        u.save()
+        log.info("Auth Token: {}".format(u.auth_token))
+        update.message.reply_text("Check the logs and provide the printed token to this command.",
+                                  parse_mode='Markdown')
+
+
+def manage_users(update, *args, **kwargs):
+    role = kwargs.get('role', DEFAULT_ROLE)
+    if not update.message.reply_to_message:
+        update.message.reply_text('❌ Use this command while replying to a user')
+
+    u, created = User.from_telegram(update.message.reply_to_message.from_user)
+    if kwargs.get('forget', False):
+        u.delete()
+        update.message.reply_text('🚮 Who _was_ that anyways?', parse_mode='Markdown')
+        return
+
+    u.role = role
+    u.save()
+
+    if created:
+        update.message.reply_text('✅ User added')
+    else:
+        update.message.reply_text('✅ User permissions updated')
+
 
 adapter.add_handler(CommandHandler('plugins', plugin_control,
                                    command_description='[Admin] Enable/Disable plugins. If no arguments are passed, '
-                                   'display a list of registered plugins', required_roles=['admin', 'owner'])
+                                   'display a list of registered plugins', required_roles=POWER_USERS)
                     .add_argument('--enable', nargs='+', metavar="PLUGIN", help='enables the listed plugins')
                     .add_argument('--disable', nargs='+', metavar="PLUGIN", help='disables the listed plugins')
                     .add_argument('--reload', nargs='+', metavar="PLUGIN", help='signals the specified plugins to reload, if supported'), 0)
+
+adapter.add_handler(CommandHandler('authenticate', authenticate, command_description='Authenticate yourself to the bot')
+                    .add_argument('token', nargs='?', help='your authentication token'), 0)
+
+adapter.add_handler(CommandHandler('users', manage_users, required_roles=OWNER_ROLE,
+                                   command_description='Add a user', unauthorized_response='403, motherfucker')
+                    .add_argument('--role', default=DEFAULT_ROLE, choices=USER_ROLES)
+                    .add_argument('--forget', action='store_true'), 0)
