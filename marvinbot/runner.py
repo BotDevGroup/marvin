@@ -1,4 +1,4 @@
-from marvinbot.core import load_sources
+from marvinbot.plugins import load_plugins
 from marvinbot.signals import bot_shutdown, bot_started
 from marvinbot.polling import TelegramPollingThread
 import logging
@@ -19,5 +19,5 @@ def run_bot(adapter):
 
     log.info("Starting bot in standalone mode")
     adapter.updater_thread.start()
-    load_sources(adapter.config, adapter)
+    load_plugins(adapter.config, adapter)
     bot_started.send(adapter)

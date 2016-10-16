@@ -4,3 +4,7 @@ class HandlerException(Exception):
 
 class DownloadException(Exception):
     pass
+
+
+class PluginLoadException(Exception):
+    pass

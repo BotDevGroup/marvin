@@ -7,7 +7,7 @@ from pprint import pprint
 from marvinbot.log import configure_logging
 from marvinbot import *
 from marvinbot.models import *
-from marvinbot.core import load_sources
+from marvinbot.plugins import load_plugins
 from marvinbot.utils import get_config, configure_mongoengine
 from marvinbot.cache import configure_cache
 import logging
@@ -24,4 +24,4 @@ adapter = get_adapter()
 from marvinbot.tasks import *
 from marvinbot.net import *
 configure_downloader(config)
-load_sources(config, adapter)
+load_plugins(config, adapter)

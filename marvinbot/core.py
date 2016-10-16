@@ -1,10 +1,11 @@
 from collections import defaultdict, OrderedDict
 from marvinbot.errors import HandlerException
+from marvinbot.defaults import DEFAULT_PRIORITY
 from marvinbot.models import User
+from marvinbot.plugins import Plugin
 import telegram
 import logging
-import importlib
-import traceback
+
 
 log = logging.getLogger(__name__)
 PERIODIC_TASKS = OrderedDict()
@@ -31,21 +32,36 @@ class TelegramAdapter(object):
         self.config = config
         self.bot = telegram.Bot(token)
         self.handlers = defaultdict(list)
-        self.async_available = False
+        self.plugin_registry = {}
 
     def fetch_updates(self, last_update_id=None):
         for update in self.bot.getUpdates(offset=last_update_id, timeout=int(self.config.get('fetch_timeout', 5))):
             yield update
 
-    def add_handler(self, handler, priority=2):
-        log.info("Adding handler: {}, priority: {}".format(handler, priority))
+    def add_handler(self, handler, priority=DEFAULT_PRIORITY, plugin=None):
+        if not plugin:
+            plugin = self.plugin_for_handler(handler)
+        handler.plugin = plugin
+
+        log.info("Adding handler: {}, priority: {}, plugin: {}".format(handler, priority, plugin))
         self.handlers[priority].append(handler)
+
+    def plugin_for_handler(self, handler):
+        mod = handler.callback.__module__.split('.', 1)[0]
+        plugins = self.plugins_by_modspec()
+        if mod in plugins:
+            return plugins[mod]
+
+    def plugins_by_modspec(self):
+        return {p.modspec: p for p in self.plugin_registry.values()}
 
     def process_update(self, update):
         log.info("Processing update: %s", update)
         for priority in sorted(self.handlers):
             for handler in self.handlers[priority]:
                 log.debug('Trying handler: ', handler)
+                if handler.plugin and not handler.plugin.enabled:
+                    continue
                 if handler.can_handle(update):
                     log.debug('Using handler: ', handler)
                     try:
@@ -61,6 +77,17 @@ class TelegramAdapter(object):
         for owner in owners:
             self.bot.sendMessage(owner.id, message, parse_mode=parse_mode)
 
+    def add_plugin(self, plugin):
+        if not isinstance(plugin, Plugin):
+            raise ValueError('plugin must be a Plugin sublass')
+        self.plugin_registry[plugin.name] = plugin
+
+    def enable_plugin(self, plugin_name, enable=True):
+        if plugin_name in self.plugin_registry:
+            self.plugin_registry[plugin_name].enabled = enable
+
+    def plugin_definition(self, plugin_name):
+        return self.plugin_registry.get(plugin_name)
 
 # TODO(wcx): Implement an alternate scheduler
 # def add_periodic_task(name, schedule, task, options=None, *args, **kwargs):
@@ -91,45 +118,3 @@ class TelegramAdapter(object):
 #     if PERIODIC_TASKS:
 #         tasks.update(dict(PERIODIC_TASKS))
 #     return tasks
-
-
-def load_module(modspec, config, adapter):
-    try:
-        mod = importlib.import_module(modspec)
-        if hasattr(mod, 'configure'):
-            # Call module-level configure method, passing it's module specific config
-            log.info('Calling configure() for module [%s]', mod)
-            mod.configure(config)
-    except Exception as e:
-        log.warn("Plugin [{}] not loaded due to an error".format(modspec))
-        log.exception(e)
-        return
-
-    try:
-        log.info('Attempting to import models for module [%s]', mod)
-        models_mod = importlib.import_module(modspec + ".models")
-    except Exception as e:
-        log.warn('No models loaded for [%s]: %s', mod, e)
-        log.exception(e)
-
-    try:
-        # If successful, tasks will already be registered with Celery
-        log.info('Attempting to import tasks for module [%s]', mod)
-        tasks_mod = importlib.import_module(modspec + ".tasks")
-        if hasattr(tasks_mod, 'setup'):
-            tasks_mod.setup(adapter)
-    except Exception as e:
-        # Module has no tasks, ignore
-        log.warn('No tasks loaded for [%s]', mod)
-        log.exception(e)
-
-
-def load_sources(config, adapter):
-    modules_to_load = config.get("plugins")
-    plugin_configs = config.get("plugin_configuration", {})
-
-    if modules_to_load:
-        for module in modules_to_load:
-            if module:
-                # Pass along module specific configuration, if available
-                load_module(module, plugin_configs.get(module, {}), adapter)
