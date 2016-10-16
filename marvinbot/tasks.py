@@ -1,6 +1,6 @@
 from marvinbot.core import get_adapter
-from marvinbot.signals import bot_started, bot_shutdown, plugin_reload
-from marvinbot.handlers import CommandHandler
+from marvinbot.signals import bot_started, bot_shutdown, plugin_reload, new_channel, left_channel
+from marvinbot.handlers import CommandHandler, MessageHandler
 from marvinbot.defaults import USER_ROLES, DEFAULT_ROLE, OWNER_ROLE, POWER_USERS
 from marvinbot.models import User, make_token
 import logging
@@ -113,6 +113,27 @@ def commands_list(update, *args, **kwargs):
         update.message.reply_text('No commands registered')
 
 
+def channel_changed(update, *args, **kwargs):
+    channel = '{title}'.format(title=update.message.chat.title)
+    responsible = '{first_name} {last_name} ({username})'.format(first_name=update.message.from_user.first_name,
+                                                                 last_name=update.message.from_user.last_name,
+                                                                 username=update.message.from_user.username)
+
+    if update.message.new_chat_member:
+        adapter.notify_owners('*New channel:* _{channel_name}_, added by _{responsible}_'.format(channel_name=channel,
+                                                                                                 responsible=responsible))
+        new_channel.send(update)
+    elif update.message.left_chat_member:
+        adapter.notify_owners('*Left channel:* _{channel_name}_, added by _{responsible}_'.format(channel_name=channel,
+                                                                                                  responsible=responsible))
+        left_channel.send(update)
+
+
+def filter_bot_channel_change(message):
+    return (bool(message.new_chat_member) or bool(message.left_chat_member)) and\
+        (message.new_chat_member.id == adapter.bot_info.id or message.left_chat_member.id == adapter.bot_info.id)
+
+
 adapter.add_handler(CommandHandler('plugins', plugin_control,
                                    command_description='[Admin] Enable/Disable plugins. If no arguments are passed, '
                                    'display a list of registered plugins', required_roles=POWER_USERS)
@@ -132,3 +153,5 @@ adapter.add_handler(CommandHandler('commands_list', commands_list,
                                    command_description='Returns a list of commands supported by the bot')
                     .add_argument('--exclude_internal', action='store_true', help="Exclude internal bot commmands")
                     .add_argument('--plain', action='store_true', help='Plain format (for sending to @BotFather)'), 0)
+
+adapter.add_handler(MessageHandler([filter_bot_channel_change], channel_changed, strict=True))

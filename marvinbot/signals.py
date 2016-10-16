@@ -5,6 +5,7 @@ bot_shutdown = signal('bot_shutdown')
 
 # Sent when the bot is added to a channel
 new_channel = signal('new_channel')
+left_channel = signal('left_channel')
 
 # Sent when a plugin finishes loading, receives the plugin as parameter
 plugin_loaded = signal('plugin_loaded')
