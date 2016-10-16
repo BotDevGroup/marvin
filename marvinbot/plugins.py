@@ -19,8 +19,7 @@ def load_module(modspec, config, adapter):
     else:
         plugin = Plugin(short_name, modspec, adapter)
 
-    if short_name:
-        plugin.name = short_name
+    plugin.name = short_name or plugin.name or modspec
     plugin.config = config
     plugin.adapter = adapter
     plugin.enabled = enabled
