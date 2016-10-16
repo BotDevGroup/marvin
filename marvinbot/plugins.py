@@ -50,9 +50,7 @@ def load_plugins(config, adapter):
 
 class Plugin(object):
     """An object representing a bot plugin"""
-    def __init__(self, name, enabled=True, config=None):
-        if not name:
-            raise ValueError('Name is required')
+    def __init__(self, name=None, enabled=True, config=None):
         self.name = name
 
         # These will get filled in by the plugin loader later
