@@ -1,4 +1,5 @@
-from marvinbot.core import get_adapter
+from marvinbot.core import get_adapter, BANNED_IDS_CACHE_KEY
+from marvinbot.cache import cache
 from marvinbot.signals import bot_started, bot_shutdown, plugin_reload, new_channel, left_channel
 from marvinbot.handlers import CommandHandler, MessageHandler
 from marvinbot.defaults import USER_ROLES, DEFAULT_ROLE, OWNER_ROLE, POWER_USERS
@@ -51,6 +52,16 @@ def plugin_control(update, *args, **kwargs):
 
 def authenticate(update, *args, **kwargs):
     token = kwargs.get('token')
+    if update.message.reply_to_message:
+        target, created = User.from_telegram(update.message.reply_to_message.from_user)
+        if created:
+            pass
+        elif target.banned:
+            update.message.reply_text("User is *banned*", parse_mode='Markdown')
+        else:
+            update.message.reply_text("User role is: *{}*".format(target.role), parse_mode='Markdown')
+        return
+
     u, created = User.from_telegram(update.message.from_user)
 
     owners = User.objects.filter(role='owner')
@@ -77,9 +88,13 @@ def authenticate(update, *args, **kwargs):
 
 
 def manage_users(update, *args, **kwargs):
-    role = kwargs.get('role', DEFAULT_ROLE)
+    role = kwargs.get('role')
     if not update.message.reply_to_message:
         update.message.reply_text('❌ Use this command while replying to a user')
+
+    current_user, created = User.from_telegram(update.message.from_user)
+    if role == OWNER_ROLE and current_user.role != OWNER_ROLE:
+        update.message.reply_text('❌ Only owners can add new owners')
 
     u, created = User.from_telegram(update.message.reply_to_message.from_user)
     if kwargs.get('forget', False):
@@ -87,13 +102,21 @@ def manage_users(update, *args, **kwargs):
         update.message.reply_text('🚮 Who _was_ that anyways?', parse_mode='Markdown')
         return
 
-    u.role = role
-    u.save()
-
-    if created:
-        update.message.reply_text('✅ User added')
-    else:
+    if role:
+        u.role = role
         update.message.reply_text('✅ User permissions updated')
+
+    if kwargs.get('ignore', False):
+        if u.role in POWER_USERS:
+            update.message.reply_text("❌ Can't ban an admin/owner")
+            return
+        u.banned = True
+        update.message.reply_text('🔨 Applying BanHammer!', parse_mode='Markdown')
+    elif kwargs.get('unignore', False):
+        u.banned = False
+        update.message.reply_text('Not ignoring this user anymore.', parse_mode='Markdown')
+    cache.delete(BANNED_IDS_CACHE_KEY)
+    u.save()
 
 
 def commands_list(update, *args, **kwargs):
@@ -144,14 +167,16 @@ adapter.add_handler(CommandHandler('plugins', plugin_control,
 adapter.add_handler(CommandHandler('authenticate', authenticate, command_description='Authenticate yourself to the bot')
                     .add_argument('token', nargs='?', help='your authentication token'), 0)
 
-adapter.add_handler(CommandHandler('users', manage_users, required_roles=OWNER_ROLE,
+adapter.add_handler(CommandHandler('users', manage_users, required_roles=POWER_USERS,
                                    command_description='Add a user', unauthorized_response='403, motherfucker')
                     .add_argument('--role', default=DEFAULT_ROLE, choices=USER_ROLES)
-                    .add_argument('--forget', action='store_true'), 0)
+                    .add_argument('--forget', action='store_true', help='Forget this user exists')
+                    .add_argument('--ignore', action='store_true', help='Ignore all updates from this user')
+                    .add_argument('--unignore', action='store_true', help='Stop ignoring all updates from this user'), 0)
 
 adapter.add_handler(CommandHandler('commands_list', commands_list,
                                    command_description='Returns a list of commands supported by the bot')
                     .add_argument('--exclude_internal', action='store_true', help="Exclude internal bot commmands")
                     .add_argument('--plain', action='store_true', help='Plain format (for sending to @BotFather)'), 0)
 
-adapter.add_handler(MessageHandler([filter_bot_channel_change], channel_changed, strict=True))
+adapter.add_handler(MessageHandler([filter_bot_channel_change], channel_changed, strict=True), 0)

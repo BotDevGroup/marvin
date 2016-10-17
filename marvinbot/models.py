@@ -22,6 +22,7 @@ class User(mongoengine.Document):
 
     # TODO: Implement proper groups
     role = mongoengine.StringField(choices=USER_ROLES, default=DEFAULT_ROLE)
+    banned = mongoengine.BooleanField(default=False)
     auth_token = mongoengine.StringField()
 
     def is_admin(self):

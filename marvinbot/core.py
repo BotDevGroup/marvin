@@ -2,6 +2,7 @@ from collections import defaultdict, OrderedDict
 from marvinbot.errors import HandlerException
 from marvinbot.defaults import DEFAULT_PRIORITY
 from marvinbot.models import User
+from marvinbot.cache import cache
 from marvinbot.plugins import Plugin
 import telegram
 import logging
@@ -12,6 +13,7 @@ PERIODIC_TASKS = OrderedDict()
 
 
 _ADAPTER = None
+BANNED_IDS_CACHE_KEY = 'marvinbot-banned-user-ids'
 
 
 def configure_adapter(config):
@@ -24,6 +26,14 @@ def get_adapter():
     global _ADAPTER
     if _ADAPTER:
         return _ADAPTER
+
+
+def is_user_banned(user_id):
+    def get_banned_user_ids():
+        return list(User.objects.filter(banned=True).scalar('id'))
+    banned_ids = cache.get_or_create(BANNED_IDS_CACHE_KEY, get_banned_user_ids,
+                                     should_cache_fn=lambda value: value is not None)
+    return user_id in banned_ids
 
 
 class TelegramAdapter(object):
@@ -57,6 +67,8 @@ class TelegramAdapter(object):
         return {p.modspec: p for p in self.plugin_registry.values()}
 
     def process_update(self, update):
+        if is_user_banned(update.message.from_user.id):
+            return
         log.info("Processing update: %s", update)
         for priority in sorted(self.handlers):
             for handler in self.handlers[priority]:
