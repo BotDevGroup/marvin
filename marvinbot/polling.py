@@ -5,6 +5,7 @@ from functools import partial
 import threading
 import polling
 import logging
+import time
 
 
 log = logging.getLogger(__name__)
@@ -104,6 +105,7 @@ class PollingThread(threading.Thread):
                 log.error("Error ocurred (polling every %f seconds now): %s", cur_interval, str(e))
                 # Temporarily increase the polling interval on errors
                 cur_interval = self.adjust_interval(cur_interval)
+            time.sleep(cur_interval)
 
     @staticmethod
     def adjust_interval(cur_interval):
