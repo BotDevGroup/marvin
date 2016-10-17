@@ -4,6 +4,9 @@ import re
 
 class RegexpFilter(object):
     def __init__(self, pattern, mode='match', **options):
+        """Takes a pattern, and returns a match object if it complies.
+
+        Support caching."""
         if mode not in ['match', 'search']:
             raise ValueError('Mode should be either match or search')
         self.mode = mode
@@ -21,6 +24,9 @@ class RegexpFilter(object):
 
 class MultiRegexpFilter(RegexpFilter):
     def __init__(self, patterns, **kwargs):
+        """Takes a group of patterns and evaluates them.
+
+        If patterns is a dict, add a capture group for each pattern."""
         super(MultiRegexpFilter, self).__init__(self.build_pattern(patterns), **kwargs)
 
     @staticmethod
