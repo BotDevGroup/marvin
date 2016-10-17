@@ -80,7 +80,7 @@ case $1 in
         status
         ;;
     bot_log)
-        runner_log
+        bot_log
         ;;
     shell)
         shell
