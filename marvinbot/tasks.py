@@ -169,7 +169,7 @@ adapter.add_handler(CommandHandler('authenticate', authenticate, command_descrip
 
 adapter.add_handler(CommandHandler('users', manage_users, required_roles=POWER_USERS,
                                    command_description='Add a user', unauthorized_response='403, motherfucker')
-                    .add_argument('--role', default=DEFAULT_ROLE, choices=USER_ROLES)
+                    .add_argument('--role', choices=USER_ROLES)
                     .add_argument('--forget', action='store_true', help='Forget this user exists')
                     .add_argument('--ignore', action='store_true', help='Ignore all updates from this user')
                     .add_argument('--unignore', action='store_true', help='Stop ignoring all updates from this user'), 0)
