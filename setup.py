@@ -30,6 +30,9 @@ setup(name='marvinbot',
       package_data={'': ['*.ini']},
       # namespace_packages=["telegrambot",],
       install_requires=REQUIREMENTS,
+      setup_requires=['nose>=1.0'],
+      tests_require=['coverage'],
+      test_suite='nose.collector',
       dependency_links=[
 
       ],)

@@ -20,6 +20,18 @@ See the [guide for installation](https://github.com/BotDevGroup/marvin/wiki/Inst
 # Running Marvin
 See the [guide to run marvin](https://github.com/BotDevGroup/marvin/wiki/Running-marvin).
 
+
+# Running tests
+
+First run:
+
+    $ ./marvind test
+    
+You can just run nosetests directly afterwards:
+
+    $ nosetests
+
+
 # Making Plugins
 
 See the [sample plugin](https://github.com/BotDevGroup/marvinbot_sample_plugin).  

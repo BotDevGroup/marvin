@@ -3,6 +3,7 @@ PIDFILE=var/marvinbot.pid
 DEFAULT_LOG=var/log/marvinbot.log
 mkdir -p var/log
 CMD=./run_standalone.py
+TEST_CMD='python setup.py nosetests'
 
 start_runner() {
     echo "Starting the bot"
@@ -45,6 +46,10 @@ status() {
     exit 0
 }
 
+run_tests() {
+    $TEST_CMD
+}
+
 bot_log() {
     if [ -f $DEFAULT_LOG ]; then
        tail -f $DEFAULT_LOG
@@ -75,6 +80,9 @@ case $1 in
         stop_runner
         sleep 5
         start_runner
+        ;;
+    test)
+        run_tests
         ;;
     status)
         status
