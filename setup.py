@@ -14,12 +14,13 @@ REQUIREMENTS = [
     'pytz',
     'ipython',
     'ipdb',
-    'requests'
+    'requests',
+    'apscheduler'
 ]
 
 
 setup(name='marvinbot',
-      version='0.3',
+      version='0.4',
       description='Super Duper Telegram Bot - MK. III',
       author='BotDevGroup',
       author_email='',

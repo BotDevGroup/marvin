@@ -13,6 +13,19 @@
         "download_path": "var/files",
         "workers": 2
     },
+    "scheduler": {
+        "apscheduler.jobstores.default": {
+            "type": "mongodb"
+        },
+        "apscheduler.executors.default": {
+            "class": "apscheduler.executors.pool:ThreadPoolExecutor",
+            "max_workers": 5
+        },
+        "apscheduler.job_defaults.coalesce": true,
+        "apscheduler.job_defaults.max_instances": 3,
+        "apscheduler.job_defaults.replace_existing": true,
+        "apscheduler.timezone": "America/Santo_Domingo"
+    },
     "mongodb.host": "localhost",
     "mongodb.port": "27017",
     "mongodb.db_name": "marvinbot",

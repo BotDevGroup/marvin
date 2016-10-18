@@ -102,10 +102,14 @@ class Plugin(object):
         try:
             log.info('[%s] Attempting to import handlers for module [%s]', self.name, self.module)
             self.setup_handlers(self.adapter)
+            if self.adapter.scheduler_available:
+                self.setup_schedules(self.adapter)
 
             tasks_mod = importlib.import_module(self.modspec + ".tasks")
             if hasattr(tasks_mod, 'setup'):
                 tasks_mod.setup(self.adapter)
+            if self.adapter.scheduler_available and hasattr(tasks_mod, 'setup_schedules'):
+                tasks_mod.setup_schedulers(self.adapter)
         except Exception as e:
             # Module has no tasks, ignore
             log.warn('[%s] No handlers loaded for [%s]', self.name, self.module)
@@ -113,6 +117,10 @@ class Plugin(object):
 
     def setup_handlers(self, adapter):
         """Override this to setup handlers directly from this plugin"""
+        pass
+
+    def setup_schedules(self, adapter):
+        """Override this to setup schedules"""
         pass
 
     def load(self):
