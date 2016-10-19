@@ -3,7 +3,7 @@ PIDFILE=var/marvinbot.pid
 DEFAULT_LOG=var/log/marvinbot.log
 mkdir -p var/log
 CMD=./run_standalone.py
-TEST_CMD='pytest'
+TEST_CMD='python setup.py test'
 
 start_runner() {
     echo "Starting the bot"
