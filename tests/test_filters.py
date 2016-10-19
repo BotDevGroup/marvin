@@ -1,5 +1,5 @@
 from marvinbot.filters import RegexpFilter, MultiRegexpFilter
-from nose.tools import assert_raises
+import pytest
 
 
 def test_basic_match():
@@ -20,8 +20,8 @@ def test_basic_no_match():
 
 
 def test_wrong_mode():
-    assert_raises(ValueError, RegexpFilter, r't[e]+st', mode='unknown')
-    assert_raises(ValueError, MultiRegexpFilter, [r't[e]+st'], mode='unknown')
+    pytest.raises(ValueError, RegexpFilter, r't[e]+st', mode='unknown')
+    pytest.raises(ValueError, MultiRegexpFilter, [r't[e]+st'], mode='unknown')
 
 
 def test_multi_match():
