@@ -76,6 +76,7 @@ class Plugin(object):
 
     def _do_configure(self):
         config = self.get_config()
+        self.inhibit_schedules = config.get('inhibit_schedules', False)
         try:
             self.configure(config)
             mod = importlib.import_module(self.modspec)
@@ -95,15 +96,19 @@ class Plugin(object):
             log.info('[%s] Attempting to import models', self.name)
             models_mod = importlib.import_module(self.modspec + ".models")
         except Exception as e:
-            log.warn('[%s] No models loaded for [%s]', self.name, self.module)
-            log.exception(e)
+            # Suppress these, as they are not helpful in case the plugin just doesn't have this.
+            if "No module named" not in str(e):
+                log.warn('[%s] No models loaded for [%s]', self.name, self.module)
+                log.exception(e)
 
     def _do_setup_handlers(self):
         try:
             log.info('[%s] Attempting to import handlers for module [%s]', self.name, self.module)
             self.setup_handlers(self.adapter)
-            if self.adapter.scheduler_available:
+            if self.adapter.scheduler_available and not self.inhibit_schedules:
                 self.setup_schedules(self.adapter)
+            else:
+                log.warn("[%s] Not loading schedules because inhibit_schedules==True", self.name)
 
             tasks_mod = importlib.import_module(self.modspec + ".tasks")
             if hasattr(tasks_mod, 'setup'):
@@ -112,8 +117,9 @@ class Plugin(object):
                 tasks_mod.setup_schedulers(self.adapter)
         except Exception as e:
             # Module has no tasks, ignore
-            log.warn('[%s] No handlers loaded for [%s]', self.name, self.module)
-            log.exception(e)
+            if "No module named" not in str(e):
+                log.warn('[%s] No handlers loaded for [%s]', self.name, self.module)
+                log.exception(e)
 
     def setup_handlers(self, adapter):
         """Override this to setup handlers directly from this plugin"""
