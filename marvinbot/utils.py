@@ -109,9 +109,13 @@ def get_message(update, allow_edited=True):
 
     If the message is an edit, return the original if `allow_edited` is False. Else, returns the edited version.
     """
-    if (isinstance(update, telegram.Update) and (update.message or update.edited_message and allow_edited)):
+    if not isinstance(update, telegram.Update):
+        raise ValueError('update is not a telegram.Update instance')
+    if update.message or (update.edited_message and allow_edited):
         message = update.message or update.edited_message
         return message
+    elif update.callback_query:
+        return update.callback_query.message
     return update.message
 
 

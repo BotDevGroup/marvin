@@ -194,20 +194,16 @@ class CallbackQueryHandler(Handler):
 
         super(CallbackQueryHandler, self).__init__(callback, *args, **kwargs)
 
-    def validate(self, message):
-        log.info("validate")
-        if not message.callback_query or not message.callback_query.data:
+    def can_handle(self, update):
+        """Return True/False if this handler can process the given update."""
+        query = update.callback_query
+        if not query:
             return False
-        return message.callback_query.data.startswith(self.prefix)
+        # We don't check for expiration on callbacks, just run validate
+        return self.validate(query)
 
-    def process_update(self, update):
-        message = get_message(update)
-        log.info("process_update")
-        params = {
-            prefix: self.prefix,
-        }
-
-        super(CallbackQueryHandler, self).process_update(update, *args, **params)
+    def validate(self, query):
+        return query.data.startswith(self.prefix)
 
     def __str__(self):
         return self.prefix

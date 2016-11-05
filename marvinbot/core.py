@@ -67,23 +67,24 @@ class TelegramAdapter(object):
         return {p.modspec: p for p in self.plugin_registry.values()}
 
     def process_update(self, update):
-        if is_user_banned(update.message.from_user.id):
+        user_id = update.callback_query.from_user.id if update.callback_query else update.message.from_user.id
+        if is_user_banned(user_id):
             return
-        log.info("Processing update: %s", update)
+        log.debug("Processing update: %s", update)
         for priority in sorted(self.handlers):
             for handler in self.handlers[priority]:
-                log.debug('Trying handler: ', handler)
-                if handler.plugin and not handler.plugin.enabled:
-                    continue
-                if handler.can_handle(update):
-                    log.debug('Using handler: ', handler)
-                    try:
+                try:
+                    log.debug('Trying handler: %s', str(handler))
+                    if handler.plugin and not handler.plugin.enabled:
+                        continue
+                    if handler.can_handle(update):
+                        log.debug('Using handler: %s', str(handler))
                         handler.process_update(update)
                         return
-                    except Exception as e:
-                        log.exception(e)
-                        # self.notify_owners(r"⚠ Handler Error: ```{}```".format(traceback.format_exc()))
-                        raise HandlerException from e
+                except Exception as e:
+                    log.exception(e)
+                    # self.notify_owners(r"⚠ Handler Error: ```{}```".format(traceback.format_exc()))
+                    raise HandlerException from e
 
     def notify_owners(self, message, parse_mode='Markdown'):
         owners = User.objects.filter(role='owner')
