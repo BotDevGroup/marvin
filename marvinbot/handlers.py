@@ -181,6 +181,38 @@ class MessageHandler(Handler):
         return str(self.filters)
 
 
+class CallbackQueryHandler(Handler):
+    def __init__(self, prefix, callback, *args, **kwargs):
+        """Handler that responds to callback replies based on whether they match a prefix.
+
+        Parameters:
+        - `prefix`: Callback reply data must start with this prefix."""
+        if not prefix:
+            raise ValueError('A prefix is required')
+
+        self.prefix = prefix
+
+        super(CallbackQueryHandler, self).__init__(callback, *args, **kwargs)
+
+    def validate(self, message):
+        log.info("validate")
+        if not message.callback_query or not message.callback_query.data:
+            return False
+        return message.callback_query.data.startswith(self.prefix)
+
+    def process_update(self, update):
+        message = get_message(update)
+        log.info("process_update")
+        params = {
+            prefix: self.prefix,
+        }
+
+        super(CallbackQueryHandler, self).process_update(update, *args, **params)
+
+    def __str__(self):
+        return self.prefix
+
+
 class CommonFilters(Filters):
     # TODO: Append any commonly used filters here
     pass
