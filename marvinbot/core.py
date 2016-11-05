@@ -115,33 +115,39 @@ class TelegramAdapter(object):
                     result[handler.command] = handler
         return result
 
+    @property
+    def scheduler_available(self):
+        return hasattr(self, 'scheduler') and self.scheduler
 
-# TODO(wcx): Implement an alternate scheduler
-# def add_periodic_task(name, schedule, task, options=None, *args, **kwargs):
-#     """Register a periodic task.
+    def add_job(self, func, *args, **kwargs):
+        if not self.scheduler_available:
+            raise ValueError('Scheduler not available')
 
-#     Schedule can be a python datetime.timedelta  crontab object."""
-#     PERIODIC_TASKS[name] = {
-#         'task': task,
-#         'schedule': schedule,
-#     }
-#     if args:
-#         PERIODIC_TASKS[name]['args'] = args
-#     if kwargs:
-#         PERIODIC_TASKS[name]['kwargs'] = kwargs
-#     if options:
-#         PERIODIC_TASKS[name]['options'] = options
+        # Add the adapter for easy reference
+        func.adapter = self
+        return self.scheduler.add_job(func, *args, **kwargs)
 
+    def pause_job(self, job_id):
+        if not self.scheduler_available:
+            raise ValueError('Scheduler not available')
+        return self.scheduler.pause_job(job_id)
 
-# def get_periodic_tasks(config):
-#     """Returns a list of periodic tasks in a format Celerybeat understands.
+    def resume_job(self, job_id):
+        if not self.scheduler_available:
+            raise ValueError('Scheduler not available')
+        return self.scheduler.resume_job(job_id)
 
-#     This includes both built-in tasks and any tasks that might have been added by
-#     plugins by calling `add_periodic_task`.
-#     """
-#     # Default built-in tasks
-#     tasks = {}
+    def remove_job(self, job_id):
+        if not self.scheduler_available:
+            raise ValueError('Scheduler not available')
+        return self.scheduler.remove_job(job_id)
 
-#     if PERIODIC_TASKS:
-#         tasks.update(dict(PERIODIC_TASKS))
-#     return tasks
+    def get_jobs(self):
+        if not self.scheduler_available:
+            raise ValueError('Scheduler not available')
+        return self.scheduler.get_jobs()
+
+    def get_job(self, job_id):
+        if not self.scheduler_available:
+            raise ValueError('Scheduler not available')
+        return self.scheduler.get_job(job_id)

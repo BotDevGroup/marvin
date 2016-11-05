@@ -157,6 +157,10 @@ def filter_bot_channel_change(message):
         (message.new_chat_member.id == adapter.bot_info.id or message.left_chat_member.id == adapter.bot_info.id)
 
 
+def help_command(update):
+    return commands_list(update, exclude_internal=False, plain=False)
+
+
 adapter.add_handler(CommandHandler('plugins', plugin_control,
                                    command_description='[Admin] Enable/Disable plugins. If no arguments are passed, '
                                    'display a list of registered plugins', required_roles=POWER_USERS)
@@ -178,5 +182,7 @@ adapter.add_handler(CommandHandler('commands_list', commands_list,
                                    command_description='Returns a list of commands supported by the bot')
                     .add_argument('--exclude_internal', action='store_true', help="Exclude internal bot commmands")
                     .add_argument('--plain', action='store_true', help='Plain format (for sending to @BotFather)'), 0)
+
+adapter.add_handler(CommandHandler('help', help_command, command_description='Provide help'), 0)
 
 adapter.add_handler(MessageHandler([filter_bot_channel_change], channel_changed, strict=True), 0)
