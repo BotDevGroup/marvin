@@ -131,3 +131,11 @@ def trim_accents(str):
         if k in str:
             str = str.replace(k, v)
     return str
+
+
+def trim_markdown(str):
+    chars = ['[', ']', '(', ')', '`', '_', '*']
+    for c in chars:
+        if c in str:
+            str = str.replace(c, ' ')
+    return str
