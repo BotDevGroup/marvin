@@ -153,8 +153,8 @@ def channel_changed(update, *args, **kwargs):
 
 
 def filter_bot_channel_change(message):
-    return (bool(message.new_chat_member) or bool(message.left_chat_member)) and\
-        (message.new_chat_member.id == adapter.bot_info.id or message.left_chat_member.id == adapter.bot_info.id)
+    return (bool(message.new_chat_member) and message.new_chat_member.id == adapter.bot_info.id) or\
+        (bool(message.left_chat_member) and message.left_chat_member.id == adapter.bot_info.id)
 
 
 def help_command(update):
