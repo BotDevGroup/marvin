@@ -2,6 +2,7 @@ from mongoengine import connect as mongoengine_connect
 from pymongo import ReadPreference
 from datetime import datetime
 from dateutil.tz import tzlocal
+from marvinbot.models import User
 import telegram
 import pytz
 import importlib
@@ -139,3 +140,9 @@ def trim_markdown(str):
         if c in str:
             str = str.replace(c, ' ')
     return str
+
+
+def is_user_owner(user):
+    u, created = User.from_telegram(user)
+    owners = User.objects.filter(role='owner')
+    return u in owners
