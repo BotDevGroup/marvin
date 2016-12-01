@@ -2,7 +2,6 @@ from mongoengine import connect as mongoengine_connect
 from pymongo import ReadPreference
 from datetime import datetime
 from dateutil.tz import tzlocal
-from marvinbot.models import User
 import telegram
 import pytz
 import importlib
