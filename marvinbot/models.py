@@ -37,6 +37,13 @@ class User(mongoengine.Document):
             return None
 
     @classmethod
+    def is_user_admin(cls, user_data):
+        u = cls.by_id(user_data.id)
+        if not u:
+            return False
+        return u.role in POWER_USERS
+
+    @classmethod
     def from_telegram(cls, user_data, save=False):
         prev = cls.by_id(user_data.id)
         if prev:

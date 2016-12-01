@@ -140,9 +140,3 @@ def trim_markdown(str):
         if c in str:
             str = str.replace(c, ' ')
     return str
-
-
-def is_user_owner(user):
-    u, created = User.from_telegram(user)
-    owners = User.objects.filter(role='owner')
-    return u in owners
