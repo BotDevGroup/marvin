@@ -12,12 +12,12 @@ adapter = get_adapter()
 
 @bot_started.connect
 def on_start(adapter):
-    adapter.notify_owners('✅ *Bot started*')
+    adapter.notify_owners('✅ *Bot started*.')
 
 
 @bot_shutdown.connect
 def on_shutdown(adapter):
-    adapter.notify_owners('❌ *Bot shutting down*')
+    adapter.notify_owners('❌ *Bot shutting down*.')
 
 
 def format_plugins():
@@ -29,7 +29,7 @@ def format_plugins():
         ))
     if result:
         return "\n".join(result)
-    return "No plugins registered"
+    return "❌ No plugins registered."
 
 
 def plugin_control(update, *args, **kwargs):
@@ -57,19 +57,19 @@ def authenticate(update, *args, **kwargs):
         if created:
             pass
         elif target.banned:
-            update.message.reply_text("User is *banned*", parse_mode='Markdown')
+            update.message.reply_text("User is *banned*.", parse_mode='Markdown')
         else:
-            update.message.reply_text("User role is: *{}*".format(target.role), parse_mode='Markdown')
+            update.message.reply_text("User role is: *{}*.".format(target.role), parse_mode='Markdown')
         return
 
     u, created = User.from_telegram(update.message.from_user)
 
     owners = User.objects.filter(role='owner')
     if u not in owners and not token and not created:
-        update.message.reply_text("Your role is: *{}*".format(u.role), parse_mode='Markdown')
+        update.message.reply_text("Your role is: *{}*.".format(u.role), parse_mode='Markdown')
         return
     if u in owners:
-        update.message.reply_text("You are my master")
+        update.message.reply_text("You are my master.")
         return
 
     if not created and make_token(u) == token:
@@ -90,11 +90,12 @@ def authenticate(update, *args, **kwargs):
 def manage_users(update, *args, **kwargs):
     role = kwargs.get('role')
     if not update.message.reply_to_message:
-        update.message.reply_text('❌ Use this command while replying to a user')
+        update.message.reply_text('❌ Use this command while replying to a user.')
+        return
 
     current_user, created = User.from_telegram(update.message.from_user)
     if role == OWNER_ROLE and current_user.role != OWNER_ROLE:
-        update.message.reply_text('❌ Only owners can add new owners')
+        update.message.reply_text('❌ Only owners can add new owners.')
 
     u, created = User.from_telegram(update.message.reply_to_message.from_user)
     if kwargs.get('forget', False):
@@ -104,11 +105,11 @@ def manage_users(update, *args, **kwargs):
 
     if role:
         u.role = role
-        update.message.reply_text('✅ User permissions updated')
+        update.message.reply_text('✅ User permissions updated.')
 
     if kwargs.get('ignore', False):
         if u.role in POWER_USERS:
-            update.message.reply_text("❌ Can't ban an admin/owner")
+            update.message.reply_text("❌ Can't ban an admin/owner.")
             return
         u.banned = True
         update.message.reply_text('🔨 Applying BanHammer!', parse_mode='Markdown')
@@ -133,7 +134,7 @@ def commands_list(update, *args, **kwargs):
     if lst:
         update.message.reply_text('\n'.join(lst))
     else:
-        update.message.reply_text('No commands registered')
+        update.message.reply_text('❌ No commands registered.')
 
 
 def channel_changed(update, *args, **kwargs):
