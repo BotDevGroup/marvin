@@ -138,18 +138,28 @@ def commands_list(update, *args, **kwargs):
 
 
 def channel_changed(update, *args, **kwargs):
-    channel = '{title}'.format(title=update.message.chat.title)
-    responsible = '{first_name} {last_name} ({username})'.format(first_name=update.message.from_user.first_name,
-                                                                 last_name=update.message.from_user.last_name,
-                                                                 username=update.message.from_user.username)
+    title = update.message.chat.title
+    if update.message.chat.username:
+        chat_username = update.message.chat.username
+        chat = '{title} (@{chat_username})'.format(title=title, chat_username=chat_username)
+    else:
+        chat = '{title} ({id})'.format(title=title, id=update.message.chat.id)
+
+    first_name = update.message.from_user.first_name
+    last_name = update.message.from_user.last_name
+    responsible = '{first_name} {last_name} (@{username})'.format(first_name=first_name,
+                                                                  last_name=last_name,
+                                                                  username=update.message.from_user.username)
 
     if update.message.new_chat_member:
-        adapter.notify_owners('*New channel:* _{channel_name}_, added by _{responsible}_'.format(channel_name=channel,
-                                                                                                 responsible=responsible))
+        adapter.notify_owners('🚪 <b>Joined chat:</b> {chat}\nInvited by {responsible}'.format(chat=chat,
+                                                                                                     responsible=responsible),
+                              parse_mode='HTML')
         new_channel.send(update)
     elif update.message.left_chat_member:
-        adapter.notify_owners('*Left channel:* _{channel_name}_, added by _{responsible}_'.format(channel_name=channel,
-                                                                                                  responsible=responsible))
+        adapter.notify_owners('🚪 <b>Left chat:</> {chat}\nKicked by {responsible}'.format(chat=chat,
+                                                                                                 responsible=responsible),
+                              parse_mode='HTML')
         left_channel.send(update)
 
 
