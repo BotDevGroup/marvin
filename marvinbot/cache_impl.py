@@ -8,11 +8,11 @@ __all__ = ['to_ascii', 'to_str', 'cache_key_generator', 'cache', 'configure_cach
 
 
 def to_ascii(ze_text):
-    return unicodedata.normalize('NFKD', ze_text).encode('ascii', 'ignore')
+    return unicodedata.normalize('NFKD', str(ze_text)).encode('ascii', 'ignore')
 
 
 def to_str(val, transform=to_ascii):
-    return transform(val)
+    return str(transform(val))
 
 
 def cache_key_generator(namespace, fn, to_str=to_str):

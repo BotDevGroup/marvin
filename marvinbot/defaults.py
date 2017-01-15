@@ -1,0 +1,16 @@
+DEFAULT_PRIORITY = 2
+USER_ROLES = ['normal', 'admin', 'owner']
+DEFAULT_ROLE = 'normal'
+ADMIN_ROLE = 'admin'
+OWNER_ROLE = 'owner'
+
+POWER_USERS = [OWNER_ROLE, ADMIN_ROLE]
+
+if DEFAULT_ROLE not in USER_ROLES:
+    USER_ROLES.append(DEFAULT_ROLE)
+
+if ADMIN_ROLE not in USER_ROLES:
+    USER_ROLES.append(ADMIN_ROLE)
+
+if OWNER_ROLE not in USER_ROLES:
+    USER_ROLES.append(OWNER_ROLE)

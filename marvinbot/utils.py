@@ -7,7 +7,6 @@ import pytz
 import importlib
 import os
 import json
-import sys
 import logging
 
 log = logging.getLogger(__name__)
@@ -40,15 +39,18 @@ def get_config(config_file=None):
     the configuration from a path relative to the marvinbot module. If none of that is successful, tries to load it
     from the current working directory.
     """
+    config = {}
+    if os.path.exists(DEFAULT_CONFIG):
+        with open(DEFAULT_CONFIG, 'r') as f:
+            config.update(json.load(f))
+
     if not config_file:
         config_file = os.environ.get('MARVINBOT_CONFIG') or 'settings.json'
 
     if os.path.exists(config_file):
         with open(config_file, 'r') as f:
-            config = json.load(f)
-    elif os.path.exists(DEFAULT_CONFIG):
-        with open(DEFAULT_CONFIG, 'r') as f:
-            config = json.load(f)
+            config.update(json.load(f))
+
     else:
         raise ValueError('ConfigFile [{}] not found'.format(config_file))
 
@@ -76,43 +78,9 @@ def configure_mongoengine(config):
     mongoengine_connect(db_name, tz_aware=True, read_preference=ReadPreference.PRIMARY_PREFERRED, connect=False, **params)
 
 
-def load_module(modspec, config, adapter):
-    mod = importlib.import_module(modspec)
-    if hasattr(mod, 'configure'):
-        # Call module-level configure method, passing it's module specific config
-        log.info('Calling configure() for module [%s]', mod)
-        mod.configure(config)
-
-    try:
-        log.info('Attempting to import models for module [%s]', mod)
-        models_mod = importlib.import_module(modspec + ".models")
-    except Exception:
-        log.warn('No models loaded for [%s]', mod)
-
-    try:
-        # If successful, tasks will already be registered with Celery
-        log.info('Attempting to import tasks for module [%s]', mod)
-        tasks_mod = importlib.import_module(modspec + ".tasks")
-        if hasattr(tasks_mod, 'setup'):
-            tasks_mod.setup(adapter)
-    except Exception:
-        # Module has no tasks, ignore
-        log.warn('No tasks loaded for [%s]', mod)
-
-
 CONFIG = get_config()
 DEFAULT_TIMEZONE = os.environ.get('TZ', CONFIG.get('default_timezone'))
 TZ = pytz.timezone(DEFAULT_TIMEZONE)
-
-
-def load_sources(config, adapter):
-    modules_to_load = config.get("plugins")
-
-    if modules_to_load:
-        for module in modules_to_load:
-            if module:
-                # Pass along module specific configuration, if available
-                load_module(module, config.get(module, {}), adapter)
 
 
 def localized_date(date=None, timezone=None):
@@ -141,7 +109,33 @@ def get_message(update, allow_edited=True):
 
     If the message is an edit, return the original if `allow_edited` is False. Else, returns the edited version.
     """
-    if (isinstance(update, telegram.Update) and (update.message or update.edited_message and allow_edited)):
+    if not isinstance(update, telegram.Update):
+        raise ValueError('update is not a telegram.Update instance')
+    if update.message or (update.edited_message and allow_edited):
         message = update.message or update.edited_message
         return message
+    elif update.callback_query:
+        return update.callback_query.message
     return update.message
+
+
+def trim_dict(dict):
+    # TODO add recursivity
+    return {k: v for k, v in dict if v}
+
+
+def trim_accents(str):
+    accents = ['á', 'é', 'í', 'ó', 'ú']
+    replacements = ['a', 'e', 'i', 'o', 'u']
+    for k, v in zip(accents, replacements):
+        if k in str:
+            str = str.replace(k, v)
+    return str
+
+
+def trim_markdown(str):
+    chars = ['[', ']', '(', ')', '`', '_', '*']
+    for c in chars:
+        if c in str:
+            str = str.replace(c, ' ')
+    return str
