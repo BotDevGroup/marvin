@@ -1,4 +1,4 @@
-from telegram.ext.messagehandler import Filters
+from telegram.ext.filters import Filters
 from marvinbot.models import User
 from marvinbot.utils import get_message
 from marvinbot.core import get_adapter
