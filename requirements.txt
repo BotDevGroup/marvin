@@ -1,5 +1,4 @@
-python-telegram-bot==5.1.0
-celery==3.1.23
+python-telegram-bot==5.3.0
 blinker==1.4
 dogpile.cache==0.6.2
 mongoengine==0.10.6
@@ -8,5 +7,4 @@ polling==0.3.0
 python-telegram-bot==5.1.0
 pytz==2016.6.1
 six==1.10.0
-SQLAlchemy==1.0.15
 urllib3==1.17
