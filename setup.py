@@ -2,7 +2,7 @@
 
 from distutils.core import setup
 from setuptools import find_packages
-
+import sys
 
 REQUIREMENTS = [
     'python-telegram-bot==5.3.0',
@@ -17,7 +17,8 @@ REQUIREMENTS = [
     'requests',
     'apscheduler'
 ]
-
+if sys.platform.startswith('win'):
+    REQUIREMENTS.append('pyreadline')
 
 setup(name='marvinbot',
       version='0.4',

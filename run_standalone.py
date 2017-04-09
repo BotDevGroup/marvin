@@ -6,7 +6,11 @@ import logging
 import os
 import sys
 import signal
-import readline
+if sys.platform.startswith('win'):
+  import pyreadline as readline
+else:
+  import readline
+  
 
 
 log = logging.getLogger('marvinbot-runner')
