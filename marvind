@@ -21,7 +21,7 @@ stop_runner() {
     echo "Stopping the bot"
     if [ -f $PIDFILE ]; then
         PID=$(cat $PIDFILE)
-        kill $PID;
+        kill -SIGTERM $PID;
         rm $PIDFILE
     fi
 }
