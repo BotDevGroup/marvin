@@ -13,13 +13,14 @@ class RegexpFilter(object):
         self.pattern = re.compile(pattern, **options)
         self.plain_pattern = pattern
 
-    @cache.cache_on_arguments()
-    def __call__(self, expression):
-        func = getattr(self.pattern, self.mode)
-        return func(expression)
 
-    def cache_hash(self):
-        return self.plain_pattern
+    # @cache.cache_on_arguments()
+    # def __call__(self, expression):
+    #     func = getattr(self.pattern, self.mode)
+    #     return func(expression)
+    #
+    # def cache_hash(self):
+    #     return self.plain_pattern
 
 
 class MultiRegexpFilter(RegexpFilter):
