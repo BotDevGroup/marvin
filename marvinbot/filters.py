@@ -1,8 +1,9 @@
 from marvinbot.cache import cache
+from telegram.ext.filters import BaseFilter
 import re
 
 
-class RegexpFilter(object):
+class RegexpFilter(BaseFilter):
     def __init__(self, pattern, mode='match', **options):
         """Takes a pattern, and returns a match object if it complies.
 
@@ -13,6 +14,8 @@ class RegexpFilter(object):
         self.pattern = re.compile(pattern, **options)
         self.plain_pattern = pattern
 
+    def filter(self, message):
+        return bool(self.pattern.match(message.text))
 
     # @cache.cache_on_arguments()
     # def __call__(self, expression):
