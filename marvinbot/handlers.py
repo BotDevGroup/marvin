@@ -156,7 +156,7 @@ class CommandHandler(Handler):
 
 
 class MessageHandler(Handler):
-    def __init__(self, filters, callback, strict=False, *args, **kwargs):
+    def __init__(self, filters, callback, strict=True, *args, **kwargs):
         """Handler that responds to messages based on whether they match filters.
 
         Params:
@@ -168,7 +168,7 @@ class MessageHandler(Handler):
             self.filters = filters
         else:
             self.filters = [filters]
-        self.strict = True
+        self.strict = strict
         super(MessageHandler, self).__init__(callback, *args, **kwargs)
 
     def validate(self, message):
