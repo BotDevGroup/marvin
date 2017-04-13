@@ -70,7 +70,7 @@ class TelegramAdapter(object):
         user_id = update.callback_query.from_user.id if update.callback_query else update.message.from_user.id
         if is_user_banned(user_id):
             return
-        log.debug("Processing update: %s", update)
+        log.debug("Processing update: %s", str(update).encode('utf-8'))
         for priority in sorted(self.handlers):
             for handler in self.handlers[priority]:
                 try:
