@@ -1,6 +1,6 @@
 ![Python 3.5](https://img.shields.io/badge/python-3.5-blue.svg) ![License](https://img.shields.io/github/license/mashape/apistatus.svg)
 # Marvin
-Telegram Bot written in Python
+Bot framework with plugin capability written in Python.
 
 # Requirements
 
