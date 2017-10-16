@@ -1,6 +1,6 @@
 from marvinbot.core import get_adapter, BANNED_IDS_CACHE_KEY
 from marvinbot.cache import cache
-from marvinbot.signals import bot_started, bot_shutdown, plugin_reload, new_channel, left_channel
+from marvinbot.signals import bot_started, bot_shutdown, plugin_reload, joined_chat, left_chat
 from marvinbot.handlers import CommandHandler, MessageHandler
 from marvinbot.defaults import USER_ROLES, DEFAULT_ROLE, OWNER_ROLE, POWER_USERS
 from marvinbot.models import User, make_token
@@ -137,35 +137,45 @@ def commands_list(update, *args, **kwargs):
         update.message.reply_text('❌ No commands registered.')
 
 
-def channel_changed(update, *args, **kwargs):
+def membership_changed(update, *args, **kwargs):
     title = update.message.chat.title
-    if update.message.chat.username:
-        chat_username = update.message.chat.username
-        chat = '{title} (@{chat_username})'.format(title=title, chat_username=chat_username)
+    message = update.effective_message
+    if message is None:
+        return
+    chat= update.effective_chat
+    user = update.effective_user
+    if chat.username:
+        chat = '{title} (@{chat_username})'.format(title=title, chat_username=chat.username)
     else:
-        chat = '{title} ({id})'.format(title=title, id=update.message.chat.id)
+        chat = '{title} ({id})'.format(title=title, id=chat.id)
 
-    first_name = update.message.from_user.first_name
-    last_name = update.message.from_user.last_name
+    first_name = user.first_name
+    last_name = user.last_name
+    username = user.username
     responsible = '{first_name} {last_name} (@{username})'.format(first_name=first_name,
                                                                   last_name=last_name,
-                                                                  username=update.message.from_user.username)
+                                                                  username=username)
 
-    if update.message.new_chat_member:
+    if len(message.new_chat_members) or\
+            message.channel_chat_created or\
+            message.group_chat_created or\
+            message.supergroup_chat_created:
         adapter.notify_owners('🚪 <b>Joined chat:</b> {chat}\nInvited by {responsible}'.format(chat=chat,
-                                                                                                     responsible=responsible),
+                                                                                              responsible=responsible),
                               parse_mode='HTML')
-        new_channel.send(update)
-    elif update.message.left_chat_member:
+        joined_chat.send(update)
+
+    elif message.left_chat_member:
         adapter.notify_owners('🚪 <b>Left chat:</> {chat}\nKicked by {responsible}'.format(chat=chat,
-                                                                                                 responsible=responsible),
+                                                                                          responsible=responsible),
                               parse_mode='HTML')
-        left_channel.send(update)
+        left_chat.send(update)
 
 
-def filter_bot_channel_change(message):
-    return (bool(message.new_chat_member) and message.new_chat_member.id == adapter.bot_info.id) or\
-        (bool(message.left_chat_member) and message.left_chat_member.id == adapter.bot_info.id)
+def filter_bot_membership_change(message):
+    return any(new_chat_member.id == adapter.bot_info.id for new_chat_member in message.new_chat_members) or\
+        (message.left_chat_member and message.left_chat_member.id == adapter.bot_info.id) or\
+        message.channel_chat_created or message.group_chat_created or message.supergroup_chat_created
 
 
 def help_command(update):
@@ -196,4 +206,4 @@ adapter.add_handler(CommandHandler('commands_list', commands_list,
 
 adapter.add_handler(CommandHandler('help', help_command, command_description='Provide help'), 0)
 
-adapter.add_handler(MessageHandler([filter_bot_channel_change], channel_changed, strict=True), 0)
+adapter.add_handler(MessageHandler([filter_bot_membership_change], membership_changed, strict=True), 0)

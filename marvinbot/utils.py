@@ -104,19 +104,15 @@ def localized_date(date=None, timezone=None):
     return date.astimezone(timezone)
 
 
-def get_message(update, allow_edited=True):
+def get_message(update):
     """Given an update, return the message portion of it.
 
     If the message is an edit, return the original if `allow_edited` is False. Else, returns the edited version.
     """
     if not isinstance(update, telegram.Update):
         raise ValueError('update is not a telegram.Update instance')
-    if update.message or (update.edited_message and allow_edited):
-        message = update.message or update.edited_message
-        return message
-    elif update.callback_query:
-        return update.callback_query.message
-    return update.message
+
+    return update.effective_message
 
 
 def trim_dict(dict):

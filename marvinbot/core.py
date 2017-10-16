@@ -28,7 +28,8 @@ def get_adapter():
         return _ADAPTER
 
 
-def is_user_banned(user_id):
+def is_user_banned(user):
+    user_id = user.id
     def get_banned_user_ids():
         return list(User.objects.filter(banned=True).scalar('id'))
     banned_ids = cache.get_or_create(BANNED_IDS_CACHE_KEY, get_banned_user_ids,
@@ -67,8 +68,7 @@ class TelegramAdapter(object):
         return {p.modspec: p for p in self.plugin_registry.values()}
 
     def process_update(self, update):
-        user_id = update.callback_query.from_user.id if update.callback_query else update.message.from_user.id
-        if is_user_banned(user_id):
+        if is_user_banned(update.effective_user):
             return
         log.debug("Processing update: %s", str(update).encode('utf-8'))
         for priority in sorted(self.handlers):
@@ -80,7 +80,6 @@ class TelegramAdapter(object):
                     if handler.can_handle(update):
                         log.debug('Using handler: %s', str(handler))
                         handler.process_update(update)
-                        return
                 except Exception as e:
                     log.exception(e)
                     # self.notify_owners(r"⚠ Handler Error: ```{}```".format(traceback.format_exc()))
