@@ -179,31 +179,31 @@ def filter_bot_membership_change(message):
 
 
 def help_command(update):
-    return commands_list(update, exclude_internal=False, plain=False)
+    return commands_list(update, exclude_internal=True, plain=False)
 
 
 adapter.add_handler(CommandHandler('plugins', plugin_control,
                                    command_description='[Admin] Enable/Disable plugins. If no arguments are passed, '
-                                   'display a list of registered plugins', required_roles=POWER_USERS)
-                    .add_argument('--enable', nargs='+', metavar="PLUGIN", help='enables the listed plugins')
-                    .add_argument('--disable', nargs='+', metavar="PLUGIN", help='disables the listed plugins')
-                    .add_argument('--reload', nargs='+', metavar="PLUGIN", help='signals the specified plugins to reload, if supported'), 0)
+                                   'display a list of registered plugins.', required_roles=POWER_USERS)
+                    .add_argument('--enable', nargs='+', metavar="PLUGIN", help='enables the listed plugins.')
+                    .add_argument('--disable', nargs='+', metavar="PLUGIN", help='disables the listed plugins.')
+                    .add_argument('--reload', nargs='+', metavar="PLUGIN", help='signals the specified plugins to reload, if supported.'), 0)
 
-adapter.add_handler(CommandHandler('authenticate', authenticate, command_description='Authenticate yourself to the bot')
-                    .add_argument('token', nargs='?', help='your authentication token'), 0)
+adapter.add_handler(CommandHandler('authenticate', authenticate, command_description='Authenticate yourself to the bot.')
+                    .add_argument('token', nargs='?', help='your authentication token.'), 0)
 
 adapter.add_handler(CommandHandler('users', manage_users, required_roles=POWER_USERS,
-                                   command_description='Add a user', unauthorized_response='403, motherfucker')
+                                   command_description='Add a user', unauthorized_response='403, motherfucker.')
                     .add_argument('--role', choices=USER_ROLES)
-                    .add_argument('--forget', action='store_true', help='Forget this user exists')
-                    .add_argument('--ignore', action='store_true', help='Ignore all updates from this user')
-                    .add_argument('--unignore', action='store_true', help='Stop ignoring all updates from this user'), 0)
+                    .add_argument('--forget', action='store_true', help='Forget this user exists.')
+                    .add_argument('--ignore', action='store_true', help='Ignore all updates from this user.')
+                    .add_argument('--unignore', action='store_true', help='Stop ignoring all updates from this user.'), 0)
 
 adapter.add_handler(CommandHandler('commands_list', commands_list,
-                                   command_description='Returns a list of commands supported by the bot')
-                    .add_argument('--exclude_internal', action='store_true', help="Exclude internal bot commmands")
-                    .add_argument('--plain', action='store_true', help='Plain format (for sending to @BotFather)'), 0)
+                                   command_description='Returns a list of commands supported by the bot.')
+                    .add_argument('--exclude_internal', action='store_true', help="Exclude internal bot commmands.")
+                    .add_argument('--plain', action='store_true', help='Plain format (for sending to @BotFather).'), 0)
 
-adapter.add_handler(CommandHandler('help', help_command, command_description='Provide help'), 0)
+adapter.add_handler(CommandHandler('help', help_command, command_description='Provides help.'), 0)
 
 adapter.add_handler(MessageHandler([filter_bot_membership_change], membership_changed, strict=True), 0)
