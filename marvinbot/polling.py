@@ -128,10 +128,10 @@ class PollingThread(threading.Thread):
 
 
 UPDATER_DEFAULTS = {
-            'polling_interval': 0.5,
-            'polling_expiry': 10,
-            'polling_workers': 5,
-        }
+    'polling_interval': 0.5,
+    'polling_expiry': 10,
+    'polling_workers': 5,
+}
 
 
 class TelegramPollingThread(PollingThread):
@@ -154,8 +154,7 @@ class TelegramPollingThread(PollingThread):
     def fetch_updates(self, last_result=None, last_update_time=None):
         # Fetch a list of Telegram updates for the bot, passing in the last_update_id
         # as stored in last_result
-        updates = list(self.adapter.fetch_updates(last_result))
-        return updates
+        yield from self.adapter.fetch_updates(last_result)
 
     def on_update(self, updates):
         last_update = None
