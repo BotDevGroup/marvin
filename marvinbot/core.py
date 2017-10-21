@@ -79,11 +79,6 @@ class Adapter(object, metaclass=AdapterMeta):
     def plugins_by_modspec(self):
         return {p.modspec: p for p in self.plugin_registry.values()}
 
-    def notify_owners(self, message, parse_mode='Markdown'):
-        owners = User.objects.filter(role='owner')
-        for owner in owners:
-            self.bot.sendMessage(owner.id, message, parse_mode=parse_mode)
-
     def add_plugin(self, plugin):
         if not isinstance(plugin, Plugin):
             raise ValueError('plugin must be a Plugin sublass')
@@ -151,7 +146,7 @@ class Adapter(object, metaclass=AdapterMeta):
         raise NotImplementedError
 
     @abc.abstractmethod
-    def process_update(update):
+    def process_update(self, update):
         raise NotImplementedError
 
     @abc.abstractmethod
