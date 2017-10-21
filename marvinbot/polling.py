@@ -41,7 +41,7 @@ class PollingThread(threading.Thread):
         self.func = func
         self.process_func = process_func
         self.checker = checker
-        self.ignored_exceptions = ignored_exceptions
+        self.ignored_exceptions = tuple(ignored_exceptions) if ignored_exceptions else ()
         self.poll_interval = poll_interval
         self.poll_timeout = poll_timeout
         self.send_last_update_time = send_last_update_time
@@ -100,9 +100,9 @@ class PollingThread(threading.Thread):
                 if self.hard_timeout:
                     self.running = False
                 log.debug("Timeout triggered")
-            except Exception as e:
+            except:
                 # Log the error, but keep polling
-                log.error("Error ocurred (polling every %f seconds now): %s", cur_interval, str(e))
+                log.exception("Error ocurred (polling every %f seconds now)", cur_interval)
                 # Temporarily increase the polling interval on errors
                 cur_interval = self.adjust_interval(cur_interval)
             time.sleep(cur_interval)
