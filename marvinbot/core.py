@@ -152,12 +152,23 @@ class Adapter(object, metaclass=AdapterMeta):
     def notify_owners(self, message, **kwargs):
         raise NotImplementedError
 
+    @abc.abstractmethod
+    def make_updater(self):
+        raise NotImplementedError
+
+    @property
+    def updater(self):
+        if not self._updater:
+            self._updater = self.make_updater()
+        return self._updater
+
 
 class TelegramAdapter(Adapter):
     def __init__(self, config):
         token = config.get('telegram_token')
         self.bot = telegram.Bot(token)
         self.bot_info = self.bot.getMe()
+        self._updater = None
         super(TelegramAdapter, self).__init__(config)
 
     def fetch_updates(self, last_update_id=None):
@@ -184,7 +195,12 @@ class TelegramAdapter(Adapter):
                     # self.notify_owners(r"⚠ Handler Error: ```{}```".format(traceback.format_exc()))
                     raise HandlerException from e
 
-    def notify_owners(self, message, parse_mode='Markdown'):
+    def notify_owners(self, message: str, parse_mode='Markdown'):
         owners = User.objects.filter(role='owner')
         for owner in owners:
             self.bot.sendMessage(owner.id, message, parse_mode=parse_mode)
+
+    def make_updater(self):
+        from marvinbot.polling import TelegramPollingThread
+        updater = TelegramPollingThread(self)
+        return updater
