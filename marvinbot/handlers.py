@@ -28,6 +28,7 @@ class Handler(object, metaclass=abc.ABCMeta):
         self.allow_edits = allow_edits
         self.discard_threshold = discard_threshold
         self.adapter = adapter or get_adapter()
+        self.is_final = is_final
 
     def get_registered_user(self, message):
         """Return a registered User instance for message.
