@@ -189,6 +189,8 @@ class TelegramAdapter(Adapter):
                     if handler.can_handle(update):
                         log.debug('Using handler: %s', str(handler))
                         handler.process_update(update)
+                        if not handler.is_final:
+                            continue
                         return
                 except Exception as e:
                     log.exception(e)
