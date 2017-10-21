@@ -1,16 +1,18 @@
+import argparse
+import logging
+import abc
+
 from telegram.ext.filters import Filters
 from marvinbot.models import User
 from marvinbot.utils import get_message
 from marvinbot.core import get_adapter
 from datetime import datetime
-import argparse
-import logging
 
 
 log = logging.getLogger(__name__)
 
 
-class Handler(object):
+class Handler(object, metaclass=abc.ABCMeta):
     def __init__(self, callback, adapter=None, allow_edits=True, discard_threshold=300):
         """Initialize this handler.
 
@@ -45,6 +47,7 @@ class Handler(object):
 
         return self.validate(message)
 
+    @abc.abstractmethod
     def validate(self, message):
         """Return True/False if this handler can process the given update.
 
