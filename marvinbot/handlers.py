@@ -1,43 +1,48 @@
+import argparse
+import logging
+import abc
+
 from telegram.ext.filters import Filters
 from marvinbot.models import User
 from marvinbot.utils import get_message
 from marvinbot.core import get_adapter
 from datetime import datetime
-import argparse
-import logging
 
 
 log = logging.getLogger(__name__)
 
 
-class Handler(object):
-    def __init__(self, callback, adapter=None, allow_edits=True, discard_threshold=300):
+class Handler(object, metaclass=abc.ABCMeta):
+    def __init__(self, callback, adapter=None, allow_edits=True, discard_threshold=300,
+                 is_final=True):
         """Initialize this handler.
 
-        Parameters:
-        - `allow_edits`: if enabled, handler will also accept edits.
-        - `call_async`: if callback is a celery task, call asynchronously.
-          Else call in the current worker.
-        - `discard_threshold`: Messages older than X seconds will get discarded.
-        '"""
+        :param allow_edits: if enabled, handler will also accept edits.
+        :param call_async: if callback is a celery task, call asynchronously. Else call in the current worker.
+        :param discard_threshold: Messages older than X seconds will get discarded.
+        :param is_final: if True, stop looking for handlers after successful process.
+        """
         self.callback = callback
         if not self.callback:
             raise ValueError('Callback is required')
         self.allow_edits = allow_edits
         self.discard_threshold = discard_threshold
         self.adapter = adapter or get_adapter()
+        self.is_final = is_final
 
     def get_registered_user(self, message):
         """Return a registered User instance for message.
 
-        Returns None if the user isn't registered."""
+        :returns: None if the user isn't registered."""
         user = message.from_user
         user_id = user.id
 
         return User.by_id(user_id)
 
     def can_handle(self, update):
-        """Return True/False if this handler can process the given update."""
+        """Can this handler process this update?
+
+        :returns: True/False if this handler can process the given update."""
         message = update.effective_message
         age = datetime.now() - message.date
         if self.discard_threshold and age.total_seconds() > self.discard_threshold:
@@ -45,8 +50,11 @@ class Handler(object):
 
         return self.validate(message)
 
+    @abc.abstractmethod
     def validate(self, message):
-        """Return True/False if this handler can process the given update.
+        """Can this handler process this update?
+
+        :returns: True/False if this handler can process the given update.
 
         You need to override this method."""
         raise NotImplementedError
@@ -161,8 +169,7 @@ class MessageHandler(Handler):
     def __init__(self, filters, callback, strict=True, *args, **kwargs):
         """Handler that responds to messages based on whether they match filters.
 
-        Params:
-        `strict`: If True, message must match ALL filters."""
+        :param strict: If True, message must match ALL filters."""
         if not filters:
             raise ValueError('At least one filter is required')
 
@@ -188,7 +195,7 @@ class CallbackQueryHandler(Handler):
         """Handler that responds to callback replies based on whether they match a prefix.
 
         Parameters:
-        - `prefix`: Callback reply data must start with this prefix."""
+        :param prefix: Callback reply data must start with this prefix."""
         if not prefix:
             raise ValueError('A prefix is required')
 
@@ -197,7 +204,6 @@ class CallbackQueryHandler(Handler):
         super(CallbackQueryHandler, self).__init__(callback, *args, **kwargs)
 
     def can_handle(self, update):
-        """Return True/False if this handler can process the given update."""
         query = update.callback_query
         if not query:
             return False

@@ -41,7 +41,7 @@ class PollingThread(threading.Thread):
         self.func = func
         self.process_func = process_func
         self.checker = checker
-        self.ignored_exceptions = ignored_exceptions
+        self.ignored_exceptions = tuple(ignored_exceptions) if ignored_exceptions else ()
         self.poll_interval = poll_interval
         self.poll_timeout = poll_timeout
         self.send_last_update_time = send_last_update_time
@@ -102,7 +102,7 @@ class PollingThread(threading.Thread):
                 # log.debug("Timeout triggered")
             except Exception as e:
                 # Log the error, but keep polling
-                log.error("Error ocurred (polling every %f seconds now): %s", cur_interval, str(e))
+                log.exception("Error ocurred (polling every %f seconds now)", cur_interval)
                 # Temporarily increase the polling interval on errors
                 cur_interval = self.adjust_interval(cur_interval)
             time.sleep(cur_interval)
@@ -128,10 +128,10 @@ class PollingThread(threading.Thread):
 
 
 UPDATER_DEFAULTS = {
-            'polling_interval': 0.5,
-            'polling_expiry': 10,
-            'polling_workers': 5,
-        }
+    'polling_interval': 0.5,
+    'polling_expiry': 10,
+    'polling_workers': 5,
+}
 
 
 class TelegramPollingThread(PollingThread):
@@ -154,8 +154,7 @@ class TelegramPollingThread(PollingThread):
     def fetch_updates(self, last_result=None, last_update_time=None):
         # Fetch a list of Telegram updates for the bot, passing in the last_update_id
         # as stored in last_result
-        updates = list(self.adapter.fetch_updates(last_result))
-        return updates
+        yield from self.adapter.fetch_updates(last_result)
 
     def on_update(self, updates):
         last_update = None

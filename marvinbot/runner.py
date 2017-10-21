@@ -11,17 +11,15 @@ def shutdown_bot(adapter):
     log.info('Shutting down...')
     if adapter.scheduler_available:
         adapter.scheduler.shutdown()
-    adapter.updater_thread.stop()
+    adapter.updater.stop()
     bot_shutdown.send(adapter)
 
 
 def run_bot(adapter):
     # The program will exit as soon as all non-daemon threads stop
-    adapter.updater_thread = TelegramPollingThread(adapter)
-    adapter.updater_thread.daemon = False
-
     log.info("Starting bot in standalone mode")
-    adapter.updater_thread.start()
+    adapter.updater.daemon = False
+    adapter.updater.start()
     configure_scheduler(adapter.config, adapter)
     load_plugins(adapter.config, adapter)
     if adapter.scheduler_available:
