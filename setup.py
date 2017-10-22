@@ -5,7 +5,7 @@ from setuptools import find_packages
 import sys
 
 REQUIREMENTS = [
-    'python-telegram-bot~=8.1',
+    'python-telegram-bot~=8.1.1',
     'blinker',
     'python-dateutil',
     'dogpile.cache==0.6.2',
