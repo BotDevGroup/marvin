@@ -1,6 +1,6 @@
 from marvinbot.core import get_adapter, BANNED_IDS_CACHE_KEY
 from marvinbot.cache import cache
-from marvinbot.signals import bot_started, bot_shutdown, plugin_reload, new_channel, left_channel
+from marvinbot.signals import bot_started, bot_shutdown, plugin_reload, joined_chat, left_chat
 from marvinbot.handlers import CommandHandler, MessageHandler
 from marvinbot.defaults import USER_ROLES, DEFAULT_ROLE, OWNER_ROLE, POWER_USERS
 from marvinbot.models import User, make_token
@@ -137,63 +137,73 @@ def commands_list(update, *args, **kwargs):
         update.message.reply_text('❌ No commands registered.')
 
 
-def channel_changed(update, *args, **kwargs):
+def membership_changed(update, *args, **kwargs):
     title = update.message.chat.title
-    if update.message.chat.username:
-        chat_username = update.message.chat.username
-        chat = '{title} (@{chat_username})'.format(title=title, chat_username=chat_username)
+    message = update.effective_message
+    if message is None:
+        return
+    chat= update.effective_chat
+    user = update.effective_user
+    if chat.username:
+        chat = '{title} (@{chat_username})'.format(title=title, chat_username=chat.username)
     else:
-        chat = '{title} ({id})'.format(title=title, id=update.message.chat.id)
+        chat = '{title} ({id})'.format(title=title, id=chat.id)
 
-    first_name = update.message.from_user.first_name
-    last_name = update.message.from_user.last_name
+    first_name = user.first_name
+    last_name = user.last_name
+    username = user.username
     responsible = '{first_name} {last_name} (@{username})'.format(first_name=first_name,
                                                                   last_name=last_name,
-                                                                  username=update.message.from_user.username)
+                                                                  username=username)
 
-    if update.message.new_chat_member:
+    if len(message.new_chat_members) or\
+            message.channel_chat_created or\
+            message.group_chat_created or\
+            message.supergroup_chat_created:
         adapter.notify_owners('🚪 <b>Joined chat:</b> {chat}\nInvited by {responsible}'.format(chat=chat,
-                                                                                                     responsible=responsible),
+                                                                                              responsible=responsible),
                               parse_mode='HTML')
-        new_channel.send(update)
-    elif update.message.left_chat_member:
+        joined_chat.send(update)
+
+    elif message.left_chat_member:
         adapter.notify_owners('🚪 <b>Left chat:</> {chat}\nKicked by {responsible}'.format(chat=chat,
-                                                                                                 responsible=responsible),
+                                                                                          responsible=responsible),
                               parse_mode='HTML')
-        left_channel.send(update)
+        left_chat.send(update)
 
 
-def filter_bot_channel_change(message):
-    return (bool(message.new_chat_member) and message.new_chat_member.id == adapter.bot_info.id) or\
-        (bool(message.left_chat_member) and message.left_chat_member.id == adapter.bot_info.id)
+def filter_bot_membership_change(message):
+    return any(new_chat_member.id == adapter.bot_info.id for new_chat_member in message.new_chat_members) or\
+        (message.left_chat_member and message.left_chat_member.id == adapter.bot_info.id) or\
+        message.channel_chat_created or message.group_chat_created or message.supergroup_chat_created
 
 
 def help_command(update):
-    return commands_list(update, exclude_internal=False, plain=False)
+    return commands_list(update, exclude_internal=True, plain=False)
 
 
 adapter.add_handler(CommandHandler('plugins', plugin_control,
                                    command_description='[Admin] Enable/Disable plugins. If no arguments are passed, '
-                                   'display a list of registered plugins', required_roles=POWER_USERS)
-                    .add_argument('--enable', nargs='+', metavar="PLUGIN", help='enables the listed plugins')
-                    .add_argument('--disable', nargs='+', metavar="PLUGIN", help='disables the listed plugins')
-                    .add_argument('--reload', nargs='+', metavar="PLUGIN", help='signals the specified plugins to reload, if supported'), 0)
+                                   'display a list of registered plugins.', required_roles=POWER_USERS)
+                    .add_argument('--enable', nargs='+', metavar="PLUGIN", help='enables the listed plugins.')
+                    .add_argument('--disable', nargs='+', metavar="PLUGIN", help='disables the listed plugins.')
+                    .add_argument('--reload', nargs='+', metavar="PLUGIN", help='signals the specified plugins to reload, if supported.'), 0)
 
-adapter.add_handler(CommandHandler('authenticate', authenticate, command_description='Authenticate yourself to the bot')
-                    .add_argument('token', nargs='?', help='your authentication token'), 0)
+adapter.add_handler(CommandHandler('authenticate', authenticate, command_description='Authenticate yourself to the bot.')
+                    .add_argument('token', nargs='?', help='your authentication token.'), 0)
 
 adapter.add_handler(CommandHandler('users', manage_users, required_roles=POWER_USERS,
-                                   command_description='Add a user', unauthorized_response='403, motherfucker')
+                                   command_description='Add a user', unauthorized_response='❌ You don\'t have permission to use this command.')
                     .add_argument('--role', choices=USER_ROLES)
-                    .add_argument('--forget', action='store_true', help='Forget this user exists')
-                    .add_argument('--ignore', action='store_true', help='Ignore all updates from this user')
-                    .add_argument('--unignore', action='store_true', help='Stop ignoring all updates from this user'), 0)
+                    .add_argument('--forget', action='store_true', help='Forget this user exists.')
+                    .add_argument('--ignore', action='store_true', help='Ignore all updates from this user.')
+                    .add_argument('--unignore', action='store_true', help='Stop ignoring all updates from this user.'), 0)
 
 adapter.add_handler(CommandHandler('commands_list', commands_list,
-                                   command_description='Returns a list of commands supported by the bot')
-                    .add_argument('--exclude_internal', action='store_true', help="Exclude internal bot commmands")
-                    .add_argument('--plain', action='store_true', help='Plain format (for sending to @BotFather)'), 0)
+                                   command_description='Returns a list of commands supported by the bot.')
+                    .add_argument('--exclude_internal', action='store_true', help="Exclude internal bot commmands.")
+                    .add_argument('--plain', action='store_true', help='Plain format (for sending to @BotFather).'), 0)
 
-adapter.add_handler(CommandHandler('help', help_command, command_description='Provide help'), 0)
+adapter.add_handler(CommandHandler('help', help_command, command_description='Provides help.'), 0)
 
-adapter.add_handler(MessageHandler([filter_bot_channel_change], channel_changed, strict=True), 0)
+adapter.add_handler(MessageHandler([filter_bot_membership_change], membership_changed, strict=True), 0)

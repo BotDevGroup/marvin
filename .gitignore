@@ -93,3 +93,5 @@ ENV/
 
 # Configuration files
 settings.json
+
+\.idea/

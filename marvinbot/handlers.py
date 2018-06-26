@@ -43,7 +43,7 @@ class Handler(object, metaclass=abc.ABCMeta):
         """Can this handler process this update?
 
         :returns: True/False if this handler can process the given update."""
-        message = get_message(update, self.allow_edits)
+        message = update.effective_message
         age = datetime.now() - message.date
         if self.discard_threshold and age.total_seconds() > self.discard_threshold:
             return False
@@ -122,6 +122,8 @@ class CommandHandler(Handler):
         return self._arg_parser.format_help()
 
     def validate(self, message):
+        if not message.text:
+            return False
         cmd = message.text[1:].split(' ')[0].split('@', 1)
         if len(cmd) > 1:
             target_bot = cmd[1]
@@ -131,7 +133,7 @@ class CommandHandler(Handler):
                 and cmd[0] == self.command)
 
     def process_update(self, update):
-        message = get_message(update, self.allow_edits)
+        message = update.effective_message
         if self.required_roles:
             user = self.get_registered_user(message)
             if not user:
@@ -164,7 +166,7 @@ class CommandHandler(Handler):
 
 
 class MessageHandler(Handler):
-    def __init__(self, filters, callback, strict=False, *args, **kwargs):
+    def __init__(self, filters, callback, strict=True, *args, **kwargs):
         """Handler that responds to messages based on whether they match filters.
 
         :param strict: If True, message must match ALL filters."""
@@ -175,7 +177,7 @@ class MessageHandler(Handler):
             self.filters = filters
         else:
             self.filters = [filters]
-        self.strict = True
+        self.strict = strict
         super(MessageHandler, self).__init__(callback, *args, **kwargs)
 
     def validate(self, message):

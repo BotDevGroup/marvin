@@ -33,7 +33,8 @@ def get_adapter():
         return _ADAPTER
 
 
-def is_user_banned(user_id):
+def is_user_banned(user):
+    user_id = user.id
     def get_banned_user_ids():
         return list(User.objects.filter(banned=True).scalar('id'))
     banned_ids = cache.get_or_create(BANNED_IDS_CACHE_KEY, get_banned_user_ids,
@@ -145,7 +146,7 @@ class Adapter(object, metaclass=AdapterMeta):
         raise NotImplementedError
 
     @abc.abstractmethod
-    def process_update(update):
+    def process_update(self, update):
         raise NotImplementedError
 
     @abc.abstractmethod
@@ -176,10 +177,9 @@ class TelegramAdapter(Adapter):
             yield update
 
     def process_update(self, update):
-        user_id = update.callback_query.from_user.id if update.callback_query else update.message.from_user.id
-        if is_user_banned(user_id):
+        if is_user_banned(update.effective_user):
             return
-        log.debug("Processing update: %s", update)
+        log.debug("Processing update: %s", str(update).encode('utf-8'))
         for priority in sorted(self.handlers):
             for handler in self.handlers[priority]:
                 try:
@@ -191,7 +191,6 @@ class TelegramAdapter(Adapter):
                         handler.process_update(update)
                         if not handler.is_final:
                             continue
-                        return
                 except Exception as e:
                     log.exception(e)
                     # self.notify_owners(r"⚠ Handler Error: ```{}```".format(traceback.format_exc()))
