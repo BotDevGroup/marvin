@@ -1,11 +1,12 @@
 #!/usr/bin/env python
 
 from distutils.core import setup
-from setuptools import find_packages
 import sys
+from setuptools import find_packages
+
 
 REQUIREMENTS = [
-    'python-telegram-bot~=8.1.1',
+    'python-telegram-bot~=10.1.0',
     'blinker',
     'python-dateutil',
     'dogpile.cache==0.6.2',
