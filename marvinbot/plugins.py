@@ -10,7 +10,7 @@ log = logging.getLogger(__name__)
 __all__ = ['load_module', 'load_plugins', 'Plugin']
 
 
-def load_module(modspec, config, adapter):
+def load_module(modspec, config, adapter=None, webapp=None):
     enabled = config.pop('enabled', True)
     short_name = config.get('short_name')
     mod = importlib.import_module(modspec)
@@ -25,13 +25,19 @@ def load_module(modspec, config, adapter):
     plugin.enabled = enabled
     plugin.modspec = modspec
 
-    adapter.add_plugin(plugin)
+    if adapter:
+        adapter.add_plugin(plugin)
     plugin.load()
+
+    if webapp:
+        web_interface = plugin.provide_blueprint()
+        if web_interface:
+            app.register_blueprint(web_interface)
 
     return plugin
 
 
-def load_plugins(config, adapter):
+def load_plugins(config, adapter, webapp=None):
     modules_to_load = config.get("plugins")
     plugin_configs = config.get("plugin_configuration", {})
 
@@ -142,6 +148,10 @@ class Plugin(object):
 
     def add_handler(self, handler, priority=DEFAULT_PRIORITY):
         self.adapter.add_handler(handler, priority=priority, plugin=self)
+
+    def provide_blueprint(self):
+        """Returns a flask blueprint, if the plugin provides one"""
+        return None
 
     def __str__(self):
         return "{name}".format(name=self.modspec)

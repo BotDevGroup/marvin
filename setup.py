@@ -9,20 +9,25 @@ REQUIREMENTS = [
     'python-telegram-bot~=10.1.0',
     'blinker',
     'python-dateutil',
-    'dogpile.cache==0.6.2',
-    'mongoengine==0.10.6',
+    'dogpile.cache~=0.6.2',
+    'mongoengine~=0.10.6',
     'polling',
     'pytz',
     'ipython',
     'ipdb',
     'requests',
-    'apscheduler'
+    'apscheduler',
+    'flask',
+    'flask-login',
+    'flask-wtf',
+    'passlib',
+    'bcrypt'
 ]
 if sys.platform.startswith('win'):
     REQUIREMENTS.append('pyreadline')
 
 setup(name='marvinbot',
-      version='0.4',
+      version='0.5',
       description='Super Duper Telegram Bot - MK. III',
       author='BotDevGroup',
       author_email='',
