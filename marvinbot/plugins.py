@@ -1,8 +1,10 @@
+from flask import Blueprint
 from marvinbot.defaults import DEFAULT_PRIORITY
 from marvinbot.errors import PluginLoadException
 from marvinbot.signals import plugin_loaded
 import importlib
 import logging
+from urllib.parse import quote_plus
 
 log = logging.getLogger(__name__)
 
@@ -30,14 +32,16 @@ def load_module(modspec, config, adapter=None, webapp=None):
     plugin.load()
 
     if webapp:
-        web_interface = plugin.provide_blueprint()
+        web_interface = plugin.provide_blueprint(config)
         if web_interface:
-            app.register_blueprint(web_interface)
+            plugin_path = quote_plus(plugin.name)
+            log.info(f"Mounting plugin [{plugin.name}] at path /plugins/{plugin_path}")
+            webapp.register_blueprint(web_interface, url_prefix=f'/plugins/{plugin_path}')
 
     return plugin
 
 
-def load_plugins(config, adapter, webapp=None):
+def load_plugins(config, adapter=None, webapp=None):
     modules_to_load = config.get("plugins")
     plugin_configs = config.get("plugin_configuration", {})
 
@@ -46,7 +50,7 @@ def load_plugins(config, adapter, webapp=None):
             if module:
                 # Pass along module specific configuration, if available
                 try:
-                    plugin = load_module(module, plugin_configs.get(module, {}), adapter)
+                    plugin = load_module(module, plugin_configs.get(module, {}), adapter, webapp)
                     plugin_loaded.send(plugin)
                 except Exception as e:
                     # Report the error, continue loading the other plugins
@@ -65,7 +69,7 @@ class Plugin(object):
         self.adapter = None
         self.enabled = enabled
 
-    def get_default_config(self):
+    def get_default_config(self) -> dict:
         """Returns a dict with the default config for the plugin.
 
         Subclasses can override this method to provide different defaults"""
@@ -137,8 +141,6 @@ class Plugin(object):
 
     def load(self):
         log.info("Loading plugin [%s]", self.name)
-        if not self.adapter:
-            raise ValueError('An adapter is required')
         if not self.modspec:
             raise ValueError('Modspec is required')
         self.module = importlib.import_module(self.modspec)
@@ -149,7 +151,7 @@ class Plugin(object):
     def add_handler(self, handler, priority=DEFAULT_PRIORITY):
         self.adapter.add_handler(handler, priority=priority, plugin=self)
 
-    def provide_blueprint(self):
+    def provide_blueprint(self, config: dict) -> Blueprint:
         """Returns a flask blueprint, if the plugin provides one"""
         return None
 

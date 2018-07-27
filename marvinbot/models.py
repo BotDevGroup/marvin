@@ -36,7 +36,7 @@ class User(mongoengine.Document):
     active = mongoengine.BooleanField(default=True)
 
     # TODO: Implement proper groups
-    role = mongoengine.StringField(choices=RoleType, default=DEFAULT_ROLE)
+    role = mongoengine.StringField(choices=tuple((role.value, role) for role in RoleType), default=DEFAULT_ROLE.value)
     banned = mongoengine.BooleanField(default=False)
     auth_token = mongoengine.StringField()
 

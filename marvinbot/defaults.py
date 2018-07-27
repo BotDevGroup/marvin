@@ -3,8 +3,8 @@ from enum import Enum
 DEFAULT_PRIORITY = 2
 
 class RoleType(Enum):
-    ADMIN = 'admin'
     OWNER = 'owner'
+    ADMIN = 'admin'
     NORMAL = 'normal'
 
 DEFAULT_ROLE = RoleType.NORMAL

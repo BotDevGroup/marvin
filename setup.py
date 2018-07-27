@@ -10,7 +10,7 @@ REQUIREMENTS = [
     'blinker',
     'python-dateutil',
     'dogpile.cache~=0.6.2',
-    'mongoengine~=0.10.6',
+    'mongoengine',
     'polling',
     'pytz',
     'ipython',

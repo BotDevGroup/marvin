@@ -3,7 +3,8 @@
   "web_config": {
     "secret_key": "SUCH SECRET, MUCH CHANGE",
     "use_permanent_sessions": false,
-    "session_timeout_seconds": 86400
+    "session_timeout_seconds": 86400,
+    "bot_name": "Marvin"
   },
   "plugins": [],
   "plugin_configuration": {},

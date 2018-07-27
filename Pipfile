@@ -7,10 +7,19 @@ name = "pypi"
 marvinbot = {editable = true, path = "."}
 python-telegram-bot = "*"
 gunicorn = "*"
+mongoengine = "*"
+marvinbot-sample-plugin = {editable = true, path = "./../marvinbot-sample-plugin"}
 
 [dev-packages]
 ipython = "*"
 ipdb = "*"
+pylint = "*"
+marvinbot-sample-plugin = {editable = true, path = "./../marvinbot-sample-plugin"}
 
 [requires]
 python_version = "3.6"
+
+[scripts]
+bot = "./run_standalone.py"
+http = "gunicorn marvinbot.wsgi"
+http_dev = "gunicorn marvinbot.wsgi --reload"

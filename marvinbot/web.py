@@ -26,6 +26,7 @@ def load_user(username):
 def create_before_request(app):
     def before_request():
         g.user = current_user
+        g.bot_name = app.bot_name
     return before_request
 
 
@@ -48,6 +49,7 @@ def create_app():
     config = get_config()
     web_config = config.get('web_config', {})
     app.secret_key = web_config.get('secret_key')
+    app.bot_name = web_config.get('bot_name')
     app.default_timezone = config.get('default_timezone')
 
     configure_mongoengine(config)
@@ -56,7 +58,7 @@ def create_app():
     from marvinbot.views import marvinbot
 
     app.register_blueprint(marvinbot)
-    load_plugins(config, None, webapp=app)
+    load_plugins(config, webapp=app)
 
     # Add the before request handler
     app.before_request(create_before_request(app))

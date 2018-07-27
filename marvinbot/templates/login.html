@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block pagetitle %}Marvinbot - Login{% endblock %}
+{% block pagetitle %}{{ g.bot_name }} - Login{% endblock %}
 
 {% block content %}
 <form method="POST" action="{{ url_for('.login') }}">
