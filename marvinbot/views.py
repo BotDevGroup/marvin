@@ -3,12 +3,10 @@ from flask import (
     request, session, g, redirect, url_for, abort, render_template,
     flash, current_app, Blueprint
 )
-from flask.json import jsonify
 from flask_login import login_user, logout_user, current_user, login_required
 from marvinbot.models import User
 from marvinbot.forms import LoginForm
-from marvinbot.utils import is_safe_url
-
+from marvinbot.utils.net import is_safe_url
 
 log = logging.getLogger(__name__)
 marvinbot = Blueprint('marvinbot', __name__, template_folder='templates')
@@ -17,7 +15,7 @@ marvinbot = Blueprint('marvinbot', __name__, template_folder='templates')
 @marvinbot.route('/')
 @login_required
 def home():
-    return render_template('index.html', account=g.user)
+    return render_template('index.html')
 
 
 @marvinbot.route('/login', methods=["GET", "POST"])
@@ -32,7 +30,7 @@ def login():
 
             flash('Successful login')
 
-            next_url = flask.request.args.get('next')
+            next_url = request.args.get('next')
             # is_safe_url should check if the url is safe for redirects.
             # See http://flask.pocoo.org/snippets/62/ for an example.
             if not is_safe_url(request, next_url):

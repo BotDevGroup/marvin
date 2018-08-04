@@ -64,6 +64,8 @@ def configure_mongoengine(config):
         username = config.get("mongodb.username") or None
         password = config.get("mongodb.password") or None
         db_name = config.get("mongodb.db_name", "marvinbot")
+    else:
+        raise ValueError('config should be a dict instance')
 
     params = {
         'host': host,
@@ -75,7 +77,8 @@ def configure_mongoengine(config):
     if password:
         params['password'] = password
 
-    mongoengine_connect(db_name, tz_aware=True, read_preference=ReadPreference.PRIMARY_PREFERRED, connect=False, **params)
+    mongoengine_connect(db_name, tz_aware=True, read_preference=ReadPreference.PRIMARY_PREFERRED, connect=False,
+                        **params)
 
 
 CONFIG = get_config()
@@ -116,7 +119,7 @@ def get_message(update):
 
 
 def trim_dict(dict):
-    # TODO add recursivity
+    # TODO: add recursivity
     return {k: v for k, v in dict if v}
 
 
@@ -135,12 +138,3 @@ def trim_markdown(str):
         if c in str:
             str = str.replace(c, ' ')
     return str
-
-
-def is_safe_url(request, target):
-    from urlparse import urlparse, urljoin
-
-    ref_url = urlparse(request.host_url)
-    test_url = urlparse(urljoin(request.host_url, target))
-    return test_url.scheme in ('http', 'https') and \
-           ref_url.netloc == test_url.netloc

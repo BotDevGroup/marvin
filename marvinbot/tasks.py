@@ -64,7 +64,7 @@ def authenticate(update, *args, **kwargs):
 
     u, created = User.from_telegram(update.message.from_user)
 
-    owners = User.objects.filter(role=RoleType.OWNER.value)
+    owners = User.objects.filter(role=RoleType.OWNER)
     if u not in owners and not token and not created:
         update.message.reply_text("Your role is: *{}*.".format(u.role), parse_mode='Markdown')
         return
@@ -73,7 +73,7 @@ def authenticate(update, *args, **kwargs):
         return
 
     if not created and make_token(u) == token:
-        u.role = OWNER_ROLE.value
+        u.role = OWNER_ROLE
         u.auth_token = None
         u.save()
 

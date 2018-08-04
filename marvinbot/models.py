@@ -1,6 +1,7 @@
 from uuid import uuid5, NAMESPACE_X500
 from passlib.context import CryptContext
 from marvinbot.utils import localized_date
+from marvinbot.utils.mongoengine import EnumField
 from marvinbot.defaults import (
     DEFAULT_ROLE, ADMIN_ROLE, OWNER_ROLE,
     POWER_USERS, RoleType
@@ -36,7 +37,7 @@ class User(mongoengine.Document):
     active = mongoengine.BooleanField(default=True)
 
     # TODO: Implement proper groups
-    role = mongoengine.StringField(choices=tuple((role.value, role) for role in RoleType), default=DEFAULT_ROLE.value)
+    role = EnumField(RoleType, default=DEFAULT_ROLE)
     banned = mongoengine.BooleanField(default=False)
     auth_token = mongoengine.StringField()
 
