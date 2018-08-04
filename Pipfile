@@ -1,0 +1,36 @@
+[[source]]
+url = "https://pypi.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[packages]
+python-telegram-bot = "*"
+gunicorn = "*"
+mongoengine = "*"
+blinker = "*"
+flask = "*"
+flask-login = "*"
+flask-wtf = "*"
+passlib = "*"
+bcrypt = "*"
+pytz = "*"
+requests = "*"
+apscheduler = "*"
+python-dateutil = "*"
+"dogpile.cache" = "~=0.6.2"
+
+[dev-packages]
+ipython = "*"
+ipdb = "*"
+pytest = "*"
+
+[requires]
+python_version = "3.6"
+
+[scripts]
+bot = "./run_standalone.py"
+http = "gunicorn marvinbot.wsgi"
+http_dev = "gunicorn marvinbot.wsgi --reload"
+
+[pipenv]
+allow_prereleases = true

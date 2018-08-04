@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+
+{% block pagetitle %}{{ g.bot_name }} - Login{% endblock %}
+
+{% block content %}
+<form method="POST" action="{{ url_for('.login') }}">
+    {{ form.csrf_token }}
+    <div>
+        <label for="username">Username</label>
+        {{ form.username }}
+        {% for error in form.username.errors %}
+        <span style="color: red;">[{{ error }}]</span>
+        {% endfor %}<br>
+    </div>
+    <div>
+        <label for="passwd">Password</label>
+        {% for error in form.passwd.errors %}
+        <span style="color: red;">[{{ error }}]</span>
+        {% endfor %}<br>
+        {{ form.passwd }}
+    </div>
+
+    <div >
+        <input type="submit" value="Login">
+    </div>
+</form>
+{% endblock %}

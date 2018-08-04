@@ -179,7 +179,7 @@ class TelegramAdapter(Adapter):
     def process_update(self, update):
         if is_user_banned(update.effective_user):
             return
-        log.debug("Processing update: %s", str(update).encode('utf-8'))
+        log.info("Processing update: %s", str(update).encode('utf-8'))
         for priority in sorted(self.handlers):
             for handler in self.handlers[priority]:
                 try:

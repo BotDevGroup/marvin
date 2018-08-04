@@ -2,7 +2,7 @@ from marvinbot.core import get_adapter, BANNED_IDS_CACHE_KEY
 from marvinbot.cache import cache
 from marvinbot.signals import bot_started, bot_shutdown, plugin_reload, joined_chat, left_chat
 from marvinbot.handlers import CommandHandler, MessageHandler
-from marvinbot.defaults import USER_ROLES, DEFAULT_ROLE, OWNER_ROLE, POWER_USERS
+from marvinbot.defaults import DEFAULT_ROLE, OWNER_ROLE, POWER_USERS, RoleType
 from marvinbot.models import User, make_token
 import logging
 
@@ -64,7 +64,7 @@ def authenticate(update, *args, **kwargs):
 
     u, created = User.from_telegram(update.message.from_user)
 
-    owners = User.objects.filter(role='owner')
+    owners = User.objects.filter(role=RoleType.OWNER)
     if u not in owners and not token and not created:
         update.message.reply_text("Your role is: *{}*.".format(u.role), parse_mode='Markdown')
         return
@@ -194,7 +194,7 @@ adapter.add_handler(CommandHandler('authenticate', authenticate, command_descrip
 
 adapter.add_handler(CommandHandler('users', manage_users, required_roles=POWER_USERS,
                                    command_description='Add a user', unauthorized_response='❌ You don\'t have permission to use this command.')
-                    .add_argument('--role', choices=USER_ROLES)
+                    .add_argument('--role', choices=RoleType)
                     .add_argument('--forget', action='store_true', help='Forget this user exists.')
                     .add_argument('--ignore', action='store_true', help='Ignore all updates from this user.')
                     .add_argument('--unignore', action='store_true', help='Stop ignoring all updates from this user.'), 0)
