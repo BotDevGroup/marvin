@@ -13,8 +13,6 @@ REQUIREMENTS = [
     'mongoengine',
     'polling',
     'pytz',
-    'ipython',
-    'ipdb',
     'requests',
     'apscheduler',
     'flask',
