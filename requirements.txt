@@ -4,8 +4,8 @@ mongoengine
 python-dateutil
 polling
 pytz
-six
 requests
+blinker
 bcrypt
 passlib
 flask

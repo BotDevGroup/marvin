@@ -4,17 +4,25 @@ verify_ssl = true
 name = "pypi"
 
 [packages]
-marvinbot = {editable = true, path = "."}
 python-telegram-bot = "*"
 gunicorn = "*"
 mongoengine = "*"
-marvinbot-sample-plugin = {editable = true, path = "./../marvinbot-sample-plugin"}
+blinker = "*"
+flask = "*"
+flask-login = "*"
+flask-wtf = "*"
+passlib = "*"
+bcrypt = "*"
+pytz = "*"
+requests = "*"
+apscheduler = "*"
+python-dateutil = "*"
+"dogpile.cache" = "~=0.6.2"
 
 [dev-packages]
 ipython = "*"
 ipdb = "*"
-pylint = "*"
-marvinbot-sample-plugin = {editable = true, path = "./../marvinbot-sample-plugin"}
+pytest = "*"
 
 [requires]
 python_version = "3.6"
@@ -23,3 +31,6 @@ python_version = "3.6"
 bot = "./run_standalone.py"
 http = "gunicorn marvinbot.wsgi"
 http_dev = "gunicorn marvinbot.wsgi --reload"
+
+[pipenv]
+allow_prereleases = true

@@ -19,7 +19,7 @@ REQUIREMENTS = [
     'flask-login',
     'flask-wtf',
     'passlib',
-    'bcrypt'
+    'bcrypt',
 ]
 if sys.platform.startswith('win'):
     REQUIREMENTS.append('pyreadline')
@@ -33,7 +33,6 @@ setup(name='marvinbot',
       zip_safe=False,
       include_package_data=True,
       package_data={'': ['*.ini']},
-      # namespace_packages=["telegrambot",],
       install_requires=REQUIREMENTS,
       setup_requires=['pytest-runner'],
       tests_require=['pytest'],
