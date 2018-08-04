@@ -1,24 +1,13 @@
 {% extends "base.html" %}
+{% import "includes/forms.html" as forms %}
 
 {% block pagetitle %}{{ g.bot_name }} - Login{% endblock %}
 
 {% block content %}
 <form method="POST" action="{{ url_for('.login') }}">
-    {{ form.csrf_token }}
-    <div>
-        <label for="username">Username</label>
-        {{ form.username }}
-        {% for error in form.username.errors %}
-        <span style="color: red;">[{{ error }}]</span>
-        {% endfor %}<br>
-    </div>
-    <div>
-        <label for="passwd">Password</label>
-        {% for error in form.passwd.errors %}
-        <span style="color: red;">[{{ error }}]</span>
-        {% endfor %}<br>
-        {{ form.passwd }}
-    </div>
+    {{ form.hidden_tag() }}
+    {{ forms.with_errors(form.username) }}
+    {{ forms.with_errors(form.passwd) }}
 
     <div >
         <input type="submit" value="Login">

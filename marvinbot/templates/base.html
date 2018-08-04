@@ -1,23 +1,33 @@
 <!DOCTYPE html>
 <html lang="en">
-    <head>
-        <meta charset="utf-8">
-        <title>{% block pagetitle %}{{ g.bot_name }}{% endblock %}</title>
-        <meta name="viewport" content="width=device-width, initial-scale=1.0"> <!-- needed for mobile devices, sets the viewport to the device's width -->
-        <meta name="author" content="J. Random Dude">
+<head>
+    <meta charset="utf-8">
+    <title>{% block pagetitle %}{{ g.bot_name }}{% endblock %}</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"> <!-- needed for mobile devices, sets the viewport to the device's width -->
 
-        {% block styles %}{% endblock %}
-        <!-- HTML5 shim, for IE6-8 support of HTML5 elements -->
-        <!--[if lt IE 9]>
-        <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
-        <![endif]-->
-    </head>
-    <body>
-        {% block body %}
-        <div>
-            {% block content %}{% endblock %}
-        </div>
-        {% endblock body %}
-        {% block scripts %}{% endblock %}
-    </body>
+    {% block styles %}{% endblock %}
+    <!-- HTML5 shim, for IE6-8 support of HTML5 elements -->
+    <!--[if lt IE 9]>
+    <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+</head>
+<body>
+{% with messages = get_flashed_messages(with_categories=True) %}
+    {% if messages %}
+        <ul class=flashes>
+            {% for category, message in messages %}
+                <li class="{{ category }}">{{ message }}</li>
+            {% endfor %}
+        </ul>
+    {% endif %}
+{% endwith %}
+
+{% block body %}
+    <div>
+        {% block content %}{% endblock %}
+    </div>
+{% endblock body %}
+
+{% block scripts %}{% endblock %}
+</body>
 </html>
