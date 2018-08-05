@@ -20,6 +20,7 @@ REQUIREMENTS = [
     'flask-wtf',
     'passlib',
     'bcrypt',
+    'requests-oauthlib',
 ]
 if sys.platform.startswith('win'):
     REQUIREMENTS.append('pyreadline')

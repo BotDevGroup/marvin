@@ -18,6 +18,7 @@ requests = "*"
 apscheduler = "*"
 python-dateutil = "*"
 "dogpile.cache" = "~=0.6.2"
+requests-oauthlib = "*"
 
 [dev-packages]
 ipython = "*"

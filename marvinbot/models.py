@@ -1,3 +1,5 @@
+from requests_oauthlib import OAuth2Session
+from typing import Optional
 from uuid import uuid5, NAMESPACE_X500
 from passlib.context import CryptContext
 from marvinbot.utils import localized_date
@@ -41,33 +43,35 @@ class User(mongoengine.Document):
     banned = mongoengine.BooleanField(default=False)
     auth_token = mongoengine.StringField()
 
-    def is_admin(self):
+    oauth_credentials = mongoengine.DictField()
+
+    def is_admin(self) -> bool:
         # TODO: Actually check groups
         return self.role in POWER_USERS
 
     @classmethod
-    def by_id(cls, user_id):
+    def by_id(cls, user_id) -> Optional['User']:
         try:
             return cls.objects.get(id=user_id)
         except cls.DoesNotExist:
             return None
 
     @classmethod
-    def by_username(cls, username):
+    def by_username(cls, username) -> Optional['User']:
         try:
             return cls.objects.get(username=username)
         except cls.DoesNotExist:
             return None
 
     @classmethod
-    def is_user_admin(cls, user_data):
+    def is_user_admin(cls, user_data) -> bool:
         u = cls.by_id(user_data.id)
         if not u:
             return False
         return u.is_admin()
 
     @classmethod
-    def from_telegram(cls, user_data, save=False):
+    def from_telegram(cls, user_data, save=False) -> (Optional['User'], bool):
         prev = cls.by_id(user_data.id)
         if prev:
             return prev, False
@@ -77,7 +81,7 @@ class User(mongoengine.Document):
             user.save()
         return user, True
 
-    def check_password(self, password):
+    def check_password(self, password) -> bool:
         """Check if the password is correct"""
         if not self.password:
             return False
@@ -87,17 +91,67 @@ class User(mongoengine.Document):
         """Encrypts and sets the user's password"""
         self.password = hash_password(new_pass)
 
-    def is_authenticated(self):
+    def store_token(self, client_config: 'OAuthClientConfig', token: dict):
+        if client_config.name not in self.oauth_credentials:
+            self.oauth_credentials[client_config.name] = []
+        self.oauth_credentials[client_config.name].append(token)
+
+    def get_token(self, client_config: 'OAuthClientConfig', index: int = 0) -> dict:
+        return self.oauth_credentials.get(client_config.name, []).get(index)
+
+    def is_authenticated(self) -> bool:
         return True
 
-    def is_active(self):
+    def is_active(self) -> bool:
         return self.active
 
-    def is_anonymous(self):
+    def is_anonymous(self) -> bool:
         return False
 
-    def get_id(self):
+    def get_id(self) -> str:
         return self.username
 
     def __str__(self):
         return "{id}: {username}".format(id=self.id, username=self.username or '<NoUserName>')
+
+
+class OAuthClientConfig(mongoengine.Document):
+    name = mongoengine.StringField(primary_key=True, required=True)
+    client_id = mongoengine.StringField(required=True)
+    client_secret = mongoengine.StringField(required=True)
+    authorization_url = mongoengine.URLField(required=True)
+    token_url = mongoengine.URLField(required=True)
+    default_scopes = mongoengine.StringField(required=True)
+
+    @classmethod
+    def by_name(cls, client_name: str) -> Optional['OAuthClientConfig']:
+        try:
+            return cls.objects.get(name=client_name)
+        except cls.DoesNotExist:
+            return None
+
+    def make_session(self, token) -> OAuth2Session:
+        """Make a session for the current service using token
+
+        :param token: The token
+        :return: a Session object"""
+        if token:
+            client = OAuth2Session(self.client_id, token=token)
+            return client
+        else:
+            raise ValueError("No auth_token for this client.")
+
+    def get_session(self, user: User, index: int = 0) -> OAuth2Session:
+        """Generate a requests.Session object preconfigured with oauth2 credentials.
+
+        :param user: the user to make the session for
+        :param index: if multiple tokens are available, specify which in order
+        :returns: a Session object
+        """
+        if user is None:
+            raise ValueError('user is required')
+        if self.name in user.oauth_credentials:
+            token = user.get_token(self, index)
+            return self.make_session(token)
+        else:
+            raise ValueError(f'No [{self.name}] credentials available in {user}')
