@@ -16,14 +16,15 @@ bot_security_context = CryptContext(
     default="bcrypt",)
 
 
-def hash_password(pwd):
+def hash_password(pwd: str):
     return bot_security_context.encrypt(pwd)
 
 
-def verify_password(pwd, hsh):
+def verify_password(pwd: str, hsh: str):
     return bot_security_context.verify(pwd, hsh)
 
-def make_token(user):
+
+def make_token(user: 'User'):
     date = localized_date()
     # Automatically expires different after an hour
     return str(uuid5(NAMESPACE_X500, "-".join([str(user.id), user.username,
@@ -50,14 +51,14 @@ class User(mongoengine.Document):
         return self.role in POWER_USERS
 
     @classmethod
-    def by_id(cls, user_id) -> Optional['User']:
+    def by_id(cls, user_id: int) -> Optional['User']:
         try:
             return cls.objects.get(id=user_id)
         except cls.DoesNotExist:
             return None
 
     @classmethod
-    def by_username(cls, username) -> Optional['User']:
+    def by_username(cls, username: str) -> Optional['User']:
         try:
             return cls.objects.get(username=username)
         except cls.DoesNotExist:
@@ -81,13 +82,13 @@ class User(mongoengine.Document):
             user.save()
         return user, True
 
-    def check_password(self, password) -> bool:
+    def check_password(self, password: str) -> bool:
         """Check if the password is correct"""
         if not self.password:
             return False
         return self.active and verify_password(password, self.password)
 
-    def change_password(self, new_pass):
+    def change_password(self, new_pass: str):
         """Encrypts and sets the user's password"""
         self.password = hash_password(new_pass)
 
