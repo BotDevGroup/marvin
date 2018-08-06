@@ -121,7 +121,7 @@ class OAuthClientConfig(mongoengine.Document):
     client_secret = mongoengine.StringField(required=True)
     authorization_url = mongoengine.URLField(required=True)
     token_url = mongoengine.URLField(required=True)
-    default_scopes = mongoengine.StringField(required=True)
+    default_scopes = mongoengine.ListField(mongoengine.StringField())
 
     @classmethod
     def by_name(cls, client_name: str) -> Optional['OAuthClientConfig']:

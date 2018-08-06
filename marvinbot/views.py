@@ -61,7 +61,9 @@ def oauth_authorize(client_name):
     Redirect the user/resource owner to the OAuth provider (i.e. Github)
     using an URL with a few key OAuth parameters.
     """
-    scopes = request.data.get('scope')
+    scopes = request.data.get('scope') or client_config.default_scopes
+    if isinstance(scopes, str):
+        scopes = scopes.split(',')
     client = OAuth2Session(client_config.client_id, redirect_uri=url_for('.oauth_callback', _external=True),
                            scope=scopes)
     authorization_url, state = client.authorization_url(client_config.authorization_url)
