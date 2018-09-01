@@ -94,8 +94,8 @@ class User(mongoengine.Document):
 
     def store_token(self, client_config: 'OAuthClientConfig', token: dict):
         if client_config.name not in self.oauth_credentials:
-            self.oauth_credentials[client_config.name] = []
-        self.oauth_credentials[client_config.name].append(token)
+            self.oauth_credentials[client_config.key] = []
+        self.oauth_credentials[client_config.key].append(token)
 
     def get_token(self, client_config: 'OAuthClientConfig', index: int = 0) -> dict:
         return self.oauth_credentials.get(client_config.name, []).get(index)
@@ -116,8 +116,16 @@ class User(mongoengine.Document):
         return "{id}: {username}".format(id=self.id, username=self.username or '<NoUserName>')
 
 
+class OAuthClientKey(mongoengine.EmbeddedDocument):
+    plugin_name = mongoengine.StringField(required=True)
+    client_name = mongoengine.StringField(required=True)
+
+    def __str__(self):
+        return "|".join([self.plugin_name, self.client_name])
+
+
 class OAuthClientConfig(mongoengine.Document):
-    name = mongoengine.StringField(primary_key=True, required=True)
+    client_key = OAuthClientKey(primary_key=True)
     client_id = mongoengine.StringField(required=True)
     client_secret = mongoengine.StringField(required=True)
     authorization_url = mongoengine.URLField(required=True)
@@ -125,9 +133,10 @@ class OAuthClientConfig(mongoengine.Document):
     default_scopes = mongoengine.ListField(mongoengine.StringField())
 
     @classmethod
-    def by_name(cls, client_name: str) -> Optional['OAuthClientConfig']:
+    def by_name(cls, plugin_name: str, client_name: str) -> Optional['OAuthClientConfig']:
         try:
-            return cls.objects.get(name=client_name)
+            key = OAuthClientKey(plugin_name=plugin_name, client_name=client_name)
+            return cls.objects.get(client_key=key)
         except cls.DoesNotExist:
             return None
 
@@ -156,3 +165,7 @@ class OAuthClientConfig(mongoengine.Document):
             return self.make_session(token)
         else:
             raise ValueError(f'No [{self.name}] credentials available in {user}')
+
+    @property
+    def key(self) -> str:
+        return str(self.client_key)
