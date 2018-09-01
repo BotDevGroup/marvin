@@ -49,12 +49,12 @@ def logout():
     return redirect(url_for('.login'))
 
 
-@marvinbot.route('/oauth2/<client_name>/authorize')
+@marvinbot.route('/oauth2/<plugin_name>/<client_name>/authorize')
 @login_required
-def oauth_authorize(client_name):
-    client_config = OAuthClientConfig.by_name(client_name)
+def oauth_authorize(plugin_name: str, client_name: str):
+    client_config = OAuthClientConfig.by_name(plugin_name, client_name)
     if not client_config:
-        return abort(400)
+        return abort(404)
 
     """Step 1: User Authorization.
 
@@ -73,12 +73,12 @@ def oauth_authorize(client_name):
     return redirect(authorization_url)
 
 
-@marvinbot.route('/oauth2/<client_name>/callback')
+@marvinbot.route('/oauth2/<plugin_name>/<client_name>/callback')
 @login_required
-def oauth_callback(client_name):
-    client_config = OAuthClientConfig.by_name(client_name)
+def oauth_callback(plugin_name: str, client_name: str):
+    client_config = OAuthClientConfig.by_name(plugin_name, client_name)
     if not client_config:
-        return abort(400)
+        return abort(404)
 
     """ Step 3: Retrieving an access token.
 
