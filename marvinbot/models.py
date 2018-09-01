@@ -98,7 +98,7 @@ class User(mongoengine.Document):
         self.oauth_credentials[client_config.key].append(token)
 
     def get_token(self, client_config: 'OAuthClientConfig', index: int = 0) -> dict:
-        return self.oauth_credentials.get(client_config.name, []).get(index)
+        return self.oauth_credentials.get(client_config.key, []).get(index)
 
     def is_authenticated(self) -> bool:
         return True
@@ -160,11 +160,11 @@ class OAuthClientConfig(mongoengine.Document):
         """
         if user is None:
             raise ValueError('user is required')
-        if self.name in user.oauth_credentials:
+        if self.key in user.oauth_credentials:
             token = user.get_token(self, index)
             return self.make_session(token)
         else:
-            raise ValueError(f'No [{self.name}] credentials available in {user}')
+            raise ValueError(f'No [{self.key}] credentials available in {user}')
 
     @property
     def key(self) -> str:
