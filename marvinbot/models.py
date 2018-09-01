@@ -125,7 +125,7 @@ class OAuthClientKey(mongoengine.EmbeddedDocument):
 
 
 class OAuthClientConfig(mongoengine.Document):
-    client_key = OAuthClientKey(primary_key=True)
+    client_key = mongoengine.EmbeddedDocumentField(OAuthClientKey, primary_key=True)
     client_id = mongoengine.StringField(required=True)
     client_secret = mongoengine.StringField(required=True)
     authorization_url = mongoengine.URLField(required=True)
@@ -169,3 +169,6 @@ class OAuthClientConfig(mongoengine.Document):
     @property
     def key(self) -> str:
         return str(self.client_key)
+
+    def __str__(self):
+        return self.key

@@ -1,10 +1,12 @@
 from flask import Blueprint
 from marvinbot.defaults import DEFAULT_PRIORITY
 from marvinbot.errors import PluginLoadException
+from marvinbot.models import OAuthClientConfig, OAuthClientKey
 from marvinbot.signals import plugin_loaded
 import importlib
 import logging
 from urllib.parse import quote_plus
+
 
 log = logging.getLogger(__name__)
 
@@ -94,6 +96,9 @@ class Plugin(object):
                 # Call module-level configure method, passing it's module specific config
                 log.info('[%s] Calling configure() for module [%s]', self.name, self.modspec)
                 mod.configure(self.config)
+            oauth_client_configs = self.config.get('oauth_clients', {})
+            if oauth_client_configs:
+                self.configure_oauth_from_config(oauth_client_configs)
         except Exception as e:
             raise PluginLoadException from e
 
@@ -157,3 +162,14 @@ class Plugin(object):
 
     def __str__(self):
         return "{name}".format(name=self.modspec)
+
+    def configure_oauth_from_config(self, config: dict):
+        for client_config in config:
+            name = client_config.pop('name', None)
+            if not name:
+                raise ValueError('Missing name for client config')
+            key = OAuthClientKey(plugin_name=self.name, client_name=name)
+            client = OAuthClientConfig(**client_config)
+            client.client_key = key
+            client.save()
+            log.info('Registered OAuth client: %s', client)

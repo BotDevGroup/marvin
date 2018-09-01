@@ -19,6 +19,7 @@ apscheduler = "*"
 python-dateutil = "*"
 "dogpile.cache" = "~=0.6.2"
 requests-oauthlib = "*"
+polling = "*"
 
 [dev-packages]
 ipython = "*"
@@ -33,6 +34,7 @@ python_version = "3.6"
 bot = "./run_standalone.py"
 http = "gunicorn marvinbot.wsgi"
 http_dev = "gunicorn marvinbot.wsgi --reload"
+shell = "ipython -i marvinbot/shell.py"
 
 [pipenv]
 allow_prereleases = true
