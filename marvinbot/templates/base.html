@@ -3,9 +3,8 @@
     <head>
         <meta charset="utf-8">
         <title>{% block pagetitle %}{{ g.bot_name }}{% endblock %}</title>
-        <meta name="viewport" content="width=device-width, initial-scale=1.0"> <!-- needed for mobile devices, sets the viewport to the device's width -->
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, shrink-to-fit=no"> <!-- needed for mobile devices, sets the viewport to the device's width -->
         <meta name="author" content="J. Random Dude">
-
         {% block styles %}{% endblock %}
         <!-- html5shiv is an HTML5 JavaScript shim for IE to recognise and style the HTML5 elements -->
         <!--[if lt IE 9]>
