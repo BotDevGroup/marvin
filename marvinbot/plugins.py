@@ -33,6 +33,8 @@ def load_module(modspec, config, adapter=None, webapp=None):
 
     if webapp:
         web_interface = plugin.provide_blueprint(config)
+        if adapter:
+            web_interface.adapter = adapter
         if web_interface:
             plugin_path = quote_plus(plugin.name)
             log.info(f"Mounting plugin [{plugin.name}] at path /plugins/{plugin_path}")

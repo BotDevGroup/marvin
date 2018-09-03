@@ -7,6 +7,7 @@ from marvinbot.log import configure_logging
 from marvinbot.utils import (
     configure_mongoengine, get_config
 )
+from marvinbot.core import get_adapter, configure_adapter
 from functools import partial
 
 from marvinbot.models import User
@@ -50,15 +51,19 @@ def create_app():
     web_config = config.get('web_config', {})
     app.secret_key = web_config.get('secret_key')
     app.bot_name = web_config.get('bot_name')
+    app.web_debug = web_config.get('debug')
     app.default_timezone = config.get('default_timezone')
 
     configure_mongoengine(config)
     configure_logging(config)
+    configure_adapter(config)
+
+    adapter = get_adapter()
 
     from marvinbot.views import marvinbot
 
     app.register_blueprint(marvinbot)
-    load_plugins(config, webapp=app)
+    load_plugins(config, webapp=app, adapter=adapter)
 
     # Add the before request handler
     app.before_request(create_before_request(app))
