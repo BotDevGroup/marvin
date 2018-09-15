@@ -102,7 +102,7 @@ class PollingThread(threading.Thread):
                 # log.debug("Timeout triggered")
             except Exception as e:
                 # Log the error, but keep polling
-                log.exception("Error ocurred (polling every %f seconds now)", cur_interval)
+                # log.exception("Error ocurred (polling every %f seconds now)", cur_interval)
                 # Temporarily increase the polling interval on errors
                 cur_interval = self.adjust_interval(cur_interval)
             time.sleep(cur_interval)
