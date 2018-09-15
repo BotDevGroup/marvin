@@ -111,10 +111,10 @@ class PollingThread(threading.Thread):
     def adjust_interval(cur_interval):
         if cur_interval == 0:
             cur_interval = 1
-        elif cur_interval < 30:
+        elif cur_interval < 5:
             cur_interval += cur_interval / 2
-        elif cur_interval > 30:
-            cur_interval = 30
+        elif cur_interval > 5:
+            cur_interval = 5
         return cur_interval
 
     def update_last_result(self, value, is_async=True):
