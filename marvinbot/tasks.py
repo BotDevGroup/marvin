@@ -88,7 +88,13 @@ def authenticate(update, *args, **kwargs):
 
 
 def manage_users(update, *args, **kwargs):
-    role = kwargs.get('role')
+    role = kwargs.get('role', '').upper()
+    try:
+        role = RoleType[role]
+    except KeyError:
+        update.message.reply_text(f'❌ Unknown role specified: {role}')
+        return
+
     if not update.message.reply_to_message:
         update.message.reply_text('❌ Use this command while replying to a user.')
         return
