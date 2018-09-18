@@ -89,6 +89,12 @@ def authenticate(update, *args, **kwargs):
 
 def manage_users(update, *args, **kwargs):
     role = kwargs.get('role', None)
+    if role is not None:
+        try:
+            role = RoleType[role.upper()]
+        except KeyError:
+            update.message.reply_text('❌ Invalid role specified.')
+            return
 
     if not update.message.reply_to_message:
         update.message.reply_text('❌ Use this command while replying to a user.')
@@ -195,7 +201,7 @@ adapter.add_handler(CommandHandler('authenticate', authenticate, command_descrip
 
 adapter.add_handler(CommandHandler('users', manage_users, required_roles=POWER_USERS,
                                    command_description='Add a user', unauthorized_response='❌ You don\'t have permission to use this command.')
-                    .add_argument('--role', choices=list(RoleType), type=RoleType)
+                    .add_argument('--role', choices=[role.name.lower() for role in RoleType])
                     .add_argument('--forget', action='store_true', help='Forget this user exists.')
                     .add_argument('--ignore', action='store_true', help='Ignore all updates from this user.')
                     .add_argument('--unignore', action='store_true', help='Stop ignoring all updates from this user.'), 0)
