@@ -196,10 +196,10 @@ class TelegramAdapter(Adapter):
                     # self.notify_owners(r"⚠ Handler Error: ```{}```".format(traceback.format_exc()))
                     raise HandlerException from e
 
-    def notify_owners(self, message: str, parse_mode='Markdown'):
+    def notify_owners(self, message: str, **kwargs):
         owners = User.objects.filter(role='owner')
         for owner in owners:
-            self.bot.sendMessage(owner.id, message, parse_mode=parse_mode)
+            self.bot.sendMessage(owner.id, message, **kwargs)
 
     def make_updater(self):
         from marvinbot.polling import TelegramPollingThread

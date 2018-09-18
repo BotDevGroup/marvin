@@ -1,9 +1,12 @@
+from telegram import InlineKeyboardMarkup, InlineKeyboardButton
+from telegram.error import Unauthorized
 from marvinbot.core import get_adapter, BANNED_IDS_CACHE_KEY
 from marvinbot.cache import cache
 from marvinbot.signals import bot_started, bot_shutdown, plugin_reload, joined_chat, left_chat
-from marvinbot.handlers import CommandHandler, MessageHandler
+from marvinbot.handlers import CommandHandler, MessageHandler, CallbackQueryHandler
 from marvinbot.defaults import DEFAULT_ROLE, OWNER_ROLE, POWER_USERS, RoleType
 from marvinbot.models import User, make_token
+
 import logging
 
 log = logging.getLogger(__name__)
@@ -12,12 +15,12 @@ adapter = get_adapter()
 
 @bot_started.connect
 def on_start(adapter):
-    adapter.notify_owners('✅ *Bot started*.')
+    adapter.notify_owners('✅ *Bot started*.', parse_mode='Markdown')
 
 
 @bot_shutdown.connect
 def on_shutdown(adapter):
-    adapter.notify_owners('❌ *Bot shutting down*.')
+    adapter.notify_owners('❌ *Bot shutting down*.', parse_mode='Markdown')
 
 
 def format_plugins():
@@ -149,7 +152,7 @@ def membership_changed(update, *args, **kwargs):
     message = update.effective_message
     if message is None:
         return
-    chat= update.effective_chat
+    chat = update.effective_chat
     user = update.effective_user
     if chat.username:
         chat = '{title} (@{chat_username})'.format(title=title, chat_username=chat.username)
@@ -167,9 +170,13 @@ def membership_changed(update, *args, **kwargs):
             message.channel_chat_created or\
             message.group_chat_created or\
             message.supergroup_chat_created:
+        reply_markup = InlineKeyboardMarkup([
+            [InlineKeyboardButton(text='Leave', callback_data='bot:leave_chat:{}'.format(message.chat_id))]
+        ])
         adapter.notify_owners('🚪 <b>Joined chat:</b> {chat}\nInvited by {responsible}'.format(chat=chat,
                                                                                               responsible=responsible),
-                              parse_mode='HTML')
+                              parse_mode='HTML',
+                              reply_markup=reply_markup)
         joined_chat.send(update)
 
     elif message.left_chat_member:
@@ -178,6 +185,16 @@ def membership_changed(update, *args, **kwargs):
                               parse_mode='HTML')
         left_chat.send(update)
 
+def on_leave_chat(update):
+    query = update.callback_query
+    message = query.message
+    chat_id = query.data.split(':')[2]
+    query.answer()
+    message.edit_reply_markup(reply_markup=None)
+    try:
+        adapter.bot.leaveChat(chat_id)
+    except Unauthorized as err:
+        message.chat.send_message(text='❌ {}'.format(err.message))
 
 def filter_bot_membership_change(message):
     return any(new_chat_member.id == adapter.bot_info.id for new_chat_member in message.new_chat_members) or\
@@ -214,3 +231,5 @@ adapter.add_handler(CommandHandler('commands_list', commands_list,
 adapter.add_handler(CommandHandler('help', help_command, command_description='Provides help.'), 0)
 
 adapter.add_handler(MessageHandler([filter_bot_membership_change], membership_changed, strict=True), 0)
+
+adapter.add_handler(CallbackQueryHandler('bot:leave_chat', on_leave_chat), priority=1)
