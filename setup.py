@@ -6,10 +6,10 @@ from setuptools import find_packages
 
 
 REQUIREMENTS = [
-    'python-telegram-bot~=10.1.0',
+    'python-telegram-bot~=11.1.0',
     'blinker',
     'python-dateutil',
-    'dogpile.cache~=0.6.2',
+    'dogpile.cache~=0.6.7',
     'mongoengine',
     'polling',
     'pytz',
