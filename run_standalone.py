@@ -1,4 +1,4 @@
-#!/usr/bin/env ipython
+#!/usr/bin/env python
 from marvinbot.log import configure_logging
 from marvinbot.utils import get_config, configure_mongoengine
 from marvinbot.cache import configure_cache
@@ -6,16 +6,16 @@ import logging
 import os
 import sys
 import signal
-if sys.platform.startswith('win'):
-  import pyreadline as readline
+
+if sys.platform.startswith("win"):
+    import pyreadline as readline
 else:
-  import readline
-  
+    import readline
 
 
-log = logging.getLogger('marvinbot-runner')
+log = logging.getLogger("marvinbot-runner")
 
-os.environ['PYTHONINSPECT'] = 'True'
+# os.environ["PYTHONINSPECT"] = "True"
 config = get_config()
 configure_logging(config)
 configure_mongoengine(config)
@@ -24,8 +24,11 @@ configure_cache(config)
 from marvinbot.core import get_adapter, configure_adapter
 from marvinbot.runner import run_bot, shutdown_bot
 from marvinbot.net import configure_downloader
+
 configure_adapter(config)
 configure_downloader(config)
+
+original_sigint = None
 
 
 def confirm_shutdown(signum, frame):
@@ -34,7 +37,7 @@ def confirm_shutdown(signum, frame):
     signal.signal(signal.SIGINT, original_sigint)
 
     try:
-        if input("\nReally quit? (y/n)> ").lower().startswith('y'):
+        if input("\nReally quit? (y/n)> ").lower().startswith("y"):
             shutdown_bot(adapter)
 
     except KeyboardInterrupt:
@@ -50,11 +53,12 @@ def terminate(signum, frame):
     shutdown_bot(adapter)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     # store the original SIGINT handler
     original_sigint = signal.getsignal(signal.SIGINT)
     signal.signal(signal.SIGINT, confirm_shutdown)
     signal.signal(signal.SIGTERM, terminate)
     adapter = get_adapter()
     from marvinbot.tasks import *
+
     run_bot(adapter)

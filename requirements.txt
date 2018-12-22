@@ -12,4 +12,3 @@ flask
 flask-login
 flask-wtf
 apscheduler
-ipython

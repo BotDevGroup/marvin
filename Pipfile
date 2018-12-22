@@ -23,6 +23,8 @@ python-dateutil = "*"
 ipython = "*"
 ipdb = "*"
 pytest = "*"
+python-language-server = {extras = ["all"],version = "*"}
+black = "*"
 
 [requires]
 python_version = "3.6"
