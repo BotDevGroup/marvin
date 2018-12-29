@@ -1,5 +1,7 @@
 import abc
+import time
 import logging
+from functools import partial
 from collections import defaultdict, OrderedDict
 
 from marvinbot.errors import HandlerException
@@ -8,6 +10,7 @@ from marvinbot.models import User
 from marvinbot.cache import cache
 from marvinbot.plugins import Plugin
 import telegram
+from ratelimiter import RateLimiter
 
 
 log = logging.getLogger(__name__)
@@ -16,12 +19,12 @@ PERIODIC_TASKS = OrderedDict()
 
 _ADAPTER = None
 ADAPTER_REGISTRY = {}
-BANNED_IDS_CACHE_KEY = 'marvinbot-banned-user-ids'
+BANNED_IDS_CACHE_KEY = "marvinbot-banned-user-ids"
 
 
 def configure_adapter(config):
     global _ADAPTER
-    adapter_name = config.get('adapter_name', 'telegram')
+    adapter_name = config.get("adapter_name", "telegram")
     adapter = ADAPTER_REGISTRY.get(adapter_name)
     _ADAPTER = adapter(config)
     return _ADAPTER
@@ -35,10 +38,15 @@ def get_adapter():
 
 def is_user_banned(user):
     user_id = user.id
+
     def get_banned_user_ids():
-        return list(User.objects.filter(banned=True).scalar('id'))
-    banned_ids = cache.get_or_create(BANNED_IDS_CACHE_KEY, get_banned_user_ids,
-                                     should_cache_fn=lambda value: value is not None)
+        return list(User.objects.filter(banned=True).scalar("id"))
+
+    banned_ids = cache.get_or_create(
+        BANNED_IDS_CACHE_KEY,
+        get_banned_user_ids,
+        should_cache_fn=lambda value: value is not None,
+    )
     return user_id in banned_ids
 
 
@@ -47,7 +55,7 @@ class AdapterMeta(abc.ABCMeta):
         return super(AdapterMeta, mcs).__new__(mcs, name, bases, new_attrs)
 
     def __init__(cls, name, bases, attrs):
-        cls._adapter_name = name.replace('Adapter', '').lower()
+        cls._adapter_name = name.replace("Adapter", "").lower()
         ADAPTER_REGISTRY[cls.adapter_name] = cls
         super(AdapterMeta, cls).__init__(name, bases, attrs)
 
@@ -67,11 +75,15 @@ class Adapter(object, metaclass=AdapterMeta):
             plugin = self.plugin_for_handler(handler)
         handler.plugin = plugin
 
-        log.info("Adding handler: {}, priority: {}, plugin: {}".format(handler, priority, plugin))
+        log.info(
+            "Adding handler: {}, priority: {}, plugin: {}".format(
+                handler, priority, plugin
+            )
+        )
         self.handlers[priority].append(handler)
 
     def plugin_for_handler(self, handler):
-        mod = handler.callback.__module__.split('.', 1)[0]
+        mod = handler.callback.__module__.split(".", 1)[0]
         plugins = self.plugins_by_modspec()
         if mod in plugins:
             return plugins[mod]
@@ -81,7 +93,7 @@ class Adapter(object, metaclass=AdapterMeta):
 
     def add_plugin(self, plugin):
         if not isinstance(plugin, Plugin):
-            raise ValueError('plugin must be a Plugin sublass')
+            raise ValueError("plugin must be a Plugin sublass")
         self.plugin_registry[plugin.name] = plugin
 
     def enable_plugin(self, plugin_name, enable=True):
@@ -93,6 +105,7 @@ class Adapter(object, metaclass=AdapterMeta):
 
     def commands(self, exclude_internal=False):
         from marvinbot.handlers import CommandHandler
+
         result = OrderedDict()
         for priority, handlers in self.handlers.items():
             if exclude_internal and priority == 0:
@@ -106,11 +119,11 @@ class Adapter(object, metaclass=AdapterMeta):
 
     @property
     def scheduler_available(self):
-        return hasattr(self, 'scheduler') and self.scheduler
+        return hasattr(self, "scheduler") and self.scheduler
 
     def add_job(self, func, *args, **kwargs):
         if not self.scheduler_available:
-            raise ValueError('Scheduler not available')
+            raise ValueError("Scheduler not available")
 
         # Add the adapter for easy reference
         func.adapter = self
@@ -118,27 +131,27 @@ class Adapter(object, metaclass=AdapterMeta):
 
     def pause_job(self, job_id):
         if not self.scheduler_available:
-            raise ValueError('Scheduler not available')
+            raise ValueError("Scheduler not available")
         return self.scheduler.pause_job(job_id)
 
     def resume_job(self, job_id):
         if not self.scheduler_available:
-            raise ValueError('Scheduler not available')
+            raise ValueError("Scheduler not available")
         return self.scheduler.resume_job(job_id)
 
     def remove_job(self, job_id):
         if not self.scheduler_available:
-            raise ValueError('Scheduler not available')
+            raise ValueError("Scheduler not available")
         return self.scheduler.remove_job(job_id)
 
     def get_jobs(self):
         if not self.scheduler_available:
-            raise ValueError('Scheduler not available')
+            raise ValueError("Scheduler not available")
         return self.scheduler.get_jobs()
 
     def get_job(self, job_id):
         if not self.scheduler_available:
-            raise ValueError('Scheduler not available')
+            raise ValueError("Scheduler not available")
         return self.scheduler.get_job(job_id)
 
     @abc.abstractmethod
@@ -164,30 +177,65 @@ class Adapter(object, metaclass=AdapterMeta):
         return self._updater
 
 
+def on_rate_limited(until, key=None):
+    duration = int(round(until - time.time()))
+    log.info(f"[key: {key}] Rate limited, sleeping for {duration} seconds")
+
+
+RATE_LIMITERS = {
+    "default": RateLimiter(
+        max_calls=30, period=1, callback=partial(on_rate_limited, key="normal")
+    ),
+    "group": RateLimiter(
+        max_calls=20, period=60, callback=partial(on_rate_limited, key="group")
+    ),
+}
+
+
+class RateLimitedBot(telegram.Bot):
+    @cache.cache_on_arguments(expiration_time=86400)
+    def is_group_chat(self, chat_id):
+        chat_info = self.getChat(chat_id)
+        chat_type = chat_id.type
+        return "group" in chat_type
+
+    def send_message(self, *args, **kwargs):
+        chat_id = kwargs.get("chat_id")
+        rate_limiter_name = "default"
+        if chat_id:
+            if self.is_group_chat(chat_id):
+                rate_limiter_name = "group"
+        rate_limiter = RATE_LIMITERS[rate_limiter_name]
+        with rate_limiter:
+            return super(RateLimitedBot, self).send_message(*args, **kwargs)
+
+
 class TelegramAdapter(Adapter):
     def __init__(self, config):
-        token = config.get('telegram_token')
-        self.bot = telegram.Bot(token)
+        token = config.get("telegram_token")
+        self.bot = RateLimitedBot(token)
         self.bot_info = self.bot.getMe()
         self._updater = None
         super(TelegramAdapter, self).__init__(config)
 
     def fetch_updates(self, last_update_id=None):
-        for update in self.bot.getUpdates(offset=last_update_id, timeout=int(self.config.get('fetch_timeout', 5))):
+        for update in self.bot.getUpdates(
+            offset=last_update_id, timeout=int(self.config.get("fetch_timeout", 5))
+        ):
             yield update
 
     def process_update(self, update):
         if is_user_banned(update.effective_user):
             return
-        log.info("Processing update: %s", str(update).encode('utf-8'))
+        log.info("Processing update: %s", str(update).encode("utf-8"))
         for priority in sorted(self.handlers):
             for handler in self.handlers[priority]:
                 try:
-                    log.debug('Trying handler: %s', str(handler))
+                    log.debug("Trying handler: %s", str(handler))
                     if handler.plugin and not handler.plugin.enabled:
                         continue
                     if handler.can_handle(update):
-                        log.debug('Using handler: %s', str(handler))
+                        log.debug("Using handler: %s", str(handler))
                         handler.process_update(update)
                         if not handler.is_final:
                             continue
@@ -197,11 +245,12 @@ class TelegramAdapter(Adapter):
                     raise HandlerException from e
 
     def notify_owners(self, message: str, **kwargs):
-        owners = User.objects.filter(role='owner')
+        owners = User.objects.filter(role="owner")
         for owner in owners:
             self.bot.sendMessage(owner.id, message, **kwargs)
 
     def make_updater(self):
         from marvinbot.polling import TelegramPollingThread
+
         updater = TelegramPollingThread(self)
         return updater
