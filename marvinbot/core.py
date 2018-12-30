@@ -179,33 +179,41 @@ class Adapter(object, metaclass=AdapterMeta):
 
 def on_rate_limited(until, key=None):
     duration = int(round(until - time.time()))
-    log.info(f"[key: {key}] Rate limited, sleeping for {duration} seconds")
+    log.info(f"Rate limiter hit for key {key}, sleeping for {duration} seconds")
 
 
 RATE_LIMITERS = {
     "default": RateLimiter(
         max_calls=30, period=1, callback=partial(on_rate_limited, key="normal")
-    ),
-    "group": RateLimiter(
-        max_calls=20, period=60, callback=partial(on_rate_limited, key="group")
-    ),
+    )
 }
 
 
 class RateLimitedBot(telegram.Bot):
     @cache.cache_on_arguments(expiration_time=86400)
     def is_group_chat(self, chat_id):
+        log.info("Getting info for chat_id [%s]", chat_id)
         chat_info = self.getChat(chat_id)
-        chat_type = chat_id.type
-        return "group" in chat_type
+        chat_type = chat_info.type
+        return chat_type in ["group", "supergroup"]
+
+    def get_group_rate_limiter(self, chat_id):
+        key = f"group-{chat_id}"
+        if key not in RATE_LIMITERS:
+            log.info("Making rate limiter for key [%s]", key)
+            limiter = RateLimiter(
+                max_calls=20, period=60, callback=partial(on_rate_limited, key=key)
+            )
+            RATE_LIMITERS[key] = limiter
+        return RATE_LIMITERS[key]
 
     def send_message(self, *args, **kwargs):
-        chat_id = kwargs.get("chat_id")
-        rate_limiter_name = "default"
-        if chat_id:
-            if self.is_group_chat(chat_id):
-                rate_limiter_name = "group"
-        rate_limiter = RATE_LIMITERS[rate_limiter_name]
+        chat_id = kwargs.get("chat_id") or args[0]
+        if chat_id and self.is_group_chat(chat_id):
+            rate_limiter = self.get_group_rate_limiter(chat_id)
+            log.info("Using group rate limiter for group [%s]", chat_id)
+        else:
+            rate_limiter = RATE_LIMITERS["default"]
         with rate_limiter:
             return super(RateLimitedBot, self).send_message(*args, **kwargs)
 
