@@ -15,7 +15,7 @@ class RegexpFilter(BaseFilter):
         self.plain_pattern = pattern
 
     def filter(self, message):
-        return bool(self.pattern.match(message.text))
+        return bool(message.text is not None and self.pattern.match(message.text))
 
     # @cache.cache_on_arguments()
     # def __call__(self, expression):
