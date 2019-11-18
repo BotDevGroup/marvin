@@ -13,4 +13,4 @@ flask-login
 flask-wtf
 apscheduler
 ratelimiter
-gunicorn
+gunicorn==19.9.0
