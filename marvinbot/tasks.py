@@ -50,29 +50,29 @@ def plugin_control(update, *args, **kwargs):
             if p.enabled:
                 plugin_reload.send(p, update=update)
 
-    update.message.reply_text(format_plugins(), parse_mode='Markdown')
+    update.effective_message.reply_text(format_plugins(), parse_mode='Markdown')
 
 
 def authenticate(update, *args, **kwargs):
     token = kwargs.get('token')
-    if update.message.reply_to_message:
-        target, created = User.from_telegram(update.message.reply_to_message.from_user)
+    if update.effective_message.reply_to_message:
+        target, created = User.from_telegram(update.effective_message.reply_to_message.from_user)
         if created:
             pass
         elif target.banned:
-            update.message.reply_text("User is *banned*.", parse_mode='Markdown')
+            update.effective_message.reply_text("User is *banned*.", parse_mode='Markdown')
         else:
-            update.message.reply_text("User role is: *{}*.".format(target.role), parse_mode='Markdown')
+            update.effective_message.reply_text("User role is: *{}*.".format(target.role), parse_mode='Markdown')
         return
 
-    u, created = User.from_telegram(update.message.from_user)
+    u, created = User.from_telegram(update.effective_message.from_user)
 
     owners = User.objects.filter(role=RoleType.OWNER)
     if u not in owners and not token and not created:
-        update.message.reply_text("Your role is: *{}*.".format(u.role), parse_mode='Markdown')
+        update.effective_message.reply_text("Your role is: *{}*.".format(u.role), parse_mode='Markdown')
         return
     if u in owners:
-        update.message.reply_text("You are my master.")
+        update.effective_message.reply_text("You are my master.")
         return
 
     if not created and make_token(u) == token:
@@ -80,13 +80,13 @@ def authenticate(update, *args, **kwargs):
         u.auth_token = None
         u.save()
 
-        update.message.reply_text("Reporting for duty, master.", parse_mode='Markdown')
+        update.effective_message.reply_text("Reporting for duty, master.", parse_mode='Markdown')
     elif not token:
         # New user, provide instructions to become the owner
         u.auth_token = make_token(u)
         u.save()
         log.info("Auth Token: {}".format(u.auth_token))
-        update.message.reply_text("Check the logs and provide the printed token to this command.",
+        update.effective_message.reply_text("Check the logs and provide the printed token to this command.",
                                   parse_mode='Markdown')
 
 
@@ -96,36 +96,36 @@ def manage_users(update, *args, **kwargs):
         try:
             role = RoleType[role.upper()]
         except KeyError:
-            update.message.reply_text('❌ Invalid role specified.')
+            update.effective_message.reply_text('❌ Invalid role specified.')
             return
 
-    if not update.message.reply_to_message:
-        update.message.reply_text('❌ Use this command while replying to a user.')
+    if not update.effective_message.reply_to_message:
+        update.effective_message.reply_text('❌ Use this command while replying to a user.')
         return
 
     current_user, created = User.from_telegram(update.message.from_user)
     if role == OWNER_ROLE and current_user.role != OWNER_ROLE:
-        update.message.reply_text('❌ Only owners can add new owners.')
+        update.effective_message.reply_text('❌ Only owners can add new owners.')
 
-    u, created = User.from_telegram(update.message.reply_to_message.from_user)
+    u, created = User.from_telegram(update.effective_message.reply_to_message.from_user)
     if kwargs.get('forget', False):
         u.delete()
-        update.message.reply_text('🚮 Who _was_ that anyways?', parse_mode='Markdown')
+        update.effective_message.reply_text('🚮 Who _was_ that anyways?', parse_mode='Markdown')
         return
 
     if role:
         u.role = role
-        update.message.reply_text('✅ User permissions updated.')
+        update.effective_message.reply_text('✅ User permissions updated.')
 
     if kwargs.get('ignore', False):
         if u.role in POWER_USERS:
-            update.message.reply_text("❌ Can't ban an admin/owner.")
+            update.effective_message.reply_text("❌ Can't ban an admin/owner.")
             return
         u.banned = True
-        update.message.reply_text('🔨 Applying BanHammer!', parse_mode='Markdown')
+        update.effective_message.reply_text('🔨 Applying BanHammer!', parse_mode='Markdown')
     elif kwargs.get('unignore', False):
         u.banned = False
-        update.message.reply_text('Not ignoring this user anymore.', parse_mode='Markdown')
+        update.effective_message.reply_text('Not ignoring this user anymore.', parse_mode='Markdown')
     cache.delete(BANNED_IDS_CACHE_KEY)
     u.save()
 
@@ -142,9 +142,9 @@ def commands_list(update, *args, **kwargs):
                                                                     bot_name='' if plain else '@' + bot_name))
 
     if lst:
-        update.message.reply_text('\n'.join(lst))
+        update.effective_message.reply_text('\n'.join(lst))
     else:
-        update.message.reply_text('❌ No commands registered.')
+        update.effective_message.reply_text('❌ No commands registered.')
 
 
 def membership_changed(update, *args, **kwargs):
