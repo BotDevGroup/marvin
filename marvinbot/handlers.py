@@ -44,6 +44,8 @@ class Handler(object, metaclass=abc.ABCMeta):
 
         :returns: True/False if this handler can process the given update."""
         message = update.effective_message
+        if message is None:
+            return False
         age = datetime.now() - message.date
         if self.discard_threshold and age.total_seconds() > self.discard_threshold:
             return False
