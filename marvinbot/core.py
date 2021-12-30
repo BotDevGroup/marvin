@@ -233,7 +233,7 @@ class TelegramAdapter(Adapter):
             yield update
 
     def process_update(self, update):
-        if is_user_banned(update.effective_user):
+        if update.effective_user and is_user_banned(update.effective_user):
             return
         log.debug("Processing message: %s", str(update.effective_message).encode("utf-8"))
         for priority in sorted(self.handlers):
