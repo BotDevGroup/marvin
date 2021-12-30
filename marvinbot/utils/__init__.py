@@ -70,6 +70,7 @@ def configure_mongoengine(config):
     params = {
         'host': host,
         'port': int(port),
+        'authentication_source': "admin",
     }
 
     if username:
