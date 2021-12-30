@@ -79,6 +79,7 @@ celerybeat-schedule
 .env
 
 # virtualenv
+.venv/
 venv/
 ENV/
 
@@ -95,3 +96,6 @@ ENV/
 settings.json
 
 \.idea/
+
+# stackdumps
+*.stackdump
