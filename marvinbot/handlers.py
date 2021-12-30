@@ -146,6 +146,8 @@ class CommandHandler(Handler):
         # Telegram replaces -- with —, let's replace and split everything nicely
         command_str = message.text.replace('—', '--').split(' ')[1:] or []
 
+        command_str = [x for x in command_str if x.strip()]
+
         if command_str and command_str[0].lower() in ['help', '--help', '-h']:
             update.message.reply_text(self.format_help())
             return
